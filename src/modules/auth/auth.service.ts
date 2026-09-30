@@ -6,15 +6,15 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private jwtService: JwtService,
+    private configService: ConfigService
   ) {}
 
-  async generateAuthToken(id: string): Promise<string> {
+  async generateAuthToken(id: string) {
     const authToken = await this.jwtService.signAsync({
-      sub: id,
-    });
-    return authToken;
+      sub: id
+    })
+    return authToken
   }
 
   getTokenCookieOptions(): CookieOptions {
@@ -27,7 +27,7 @@ export class AuthService {
         this.configService.get('NODE_ENV') === 'production'
           ? this.configService.get('CLIENT_DOMAIN')
           : undefined,
-      maxAge: 24 * 60 * 60 * 1000, // 1d
-    };
+      maxAge: 24 * 60 * 60 * 1000 // 1d
+    }
   }
 }

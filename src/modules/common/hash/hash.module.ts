@@ -11,6 +11,6 @@ import { BcryptStrategy } from './bcrypt.strategy';
     },
     HashService,
   ],
-  exports: [HashService],
+  exports: [HashService]
 })
 export class HashModule {}

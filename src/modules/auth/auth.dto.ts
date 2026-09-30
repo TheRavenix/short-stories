@@ -2,20 +2,20 @@ import { IsEmail, IsOptional, Length } from 'class-validator';
 
 export class AuthCredentialsDto {
   @IsEmail(undefined, { message: 'Please provide a valid email address' })
-  email: string;
+  email: string
 
   @Length(4, undefined, {
-    message: 'Password must be at least 4 characters long',
+    message: 'Password must be at least 4 characters long'
   })
-  password: string;
+  password: string
 }
 
 export class SignUpDto extends AuthCredentialsDto {
   @IsOptional()
   @Length(2, undefined, {
-    message: 'This Name is too short',
+    message: 'This name is too short'
   })
-  name?: string;
+  name?: string
 }
 
 export class SignInDto extends AuthCredentialsDto {}

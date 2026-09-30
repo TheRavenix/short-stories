@@ -11,6 +11,6 @@ export class ProFontController {
   @Get()
   @UseGuards(JwtAuthGuard, UserProGuard)
   getAll() {
-    return this.proFontService.readFonts();
+    return this.proFontService.readFonts()
   }
 }

@@ -1,4 +1,4 @@
-export function slugify(text: string): string {
+export function slugify(text: string) {
   return text
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -8,5 +8,5 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-+|-+$/g, '')
 }

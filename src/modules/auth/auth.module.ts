@@ -16,15 +16,15 @@ import { HashModule } from '../common/hash/hash.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        signOptions: { expiresIn: '1d' }
       }),
       inject: [ConfigService],
     }),
     UserModule,
     HashModule,
-    ConfigModule,
+    ConfigModule
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy]
 })
 export class AuthModule {}

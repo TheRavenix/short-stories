@@ -9,17 +9,17 @@ import {
 
 export class CreateStoryReviewDto {
   @IsMongoId()
-  storyId: any;
+  storyId: any
 
   @IsNumber()
   @Min(1)
   @Max(5)
-  stars: number;
+  stars: number
 
   @Length(1, undefined, {
-    message: 'Story review comment cannot be empty',
+    message: 'Story review comment cannot be empty'
   })
-  comment: string;
+  comment: string
 }
 
 export class EditStoryReviewDto {
@@ -27,11 +27,11 @@ export class EditStoryReviewDto {
   @IsNumber()
   @Min(1)
   @Max(5)
-  stars: number;
+  stars: number
 
   @IsOptional()
   @Length(1, undefined, {
-    message: 'Story review comment cannot be empty',
+    message: 'Story review comment cannot be empty'
   })
-  comment: string;
+  comment: string
 }

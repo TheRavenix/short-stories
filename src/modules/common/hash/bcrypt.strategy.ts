@@ -7,11 +7,11 @@ import { HashStrategy } from './hash.types';
 export class BcryptStrategy implements HashStrategy {
   private saltRounds = 10;
 
-  hash(data: string): Promise<string> {
-    return bcrypt.hash(data, this.saltRounds);
+  hash(data: string) {
+    return bcrypt.hash(data, this.saltRounds)
   }
 
-  compare(data: string, encrypted: string): Promise<boolean> {
-    return bcrypt.compare(data, encrypted);
+  compare(data: string, encrypted: string) {
+    return bcrypt.compare(data, encrypted)
   }
 }

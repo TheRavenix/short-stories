@@ -4,36 +4,36 @@ import { AuthCredentialsDto } from '../auth/auth.dto';
 
 export class CreateUserDto extends AuthCredentialsDto {
   @IsOptional()
-  name?: string;
+  name?: string
 }
 
 export class EditNameDto {
   @Length(2, undefined, {
-    message: 'This name is too short',
+    message: 'This name is too short'
   })
-  name: string;
+  name: string
 }
 
 export class EditEmailDto {
   @IsEmail(undefined, {
-    message: 'Incorrect email address',
+    message: 'Incorrect email address'
   })
-  currentEmail: string;
+  currentEmail: string
 
   @IsEmail(undefined, {
-    message: 'New email must be a valid email address',
+    message: 'New email must be a valid email address'
   })
-  newEmail: string;
+  newEmail: string
 }
 
 export class ChangePasswordDto {
   @Length(4, undefined, {
-    message: 'Incorrect password',
+    message: 'Incorrect password'
   })
-  currentPassword: string;
+  currentPassword: string
 
   @Length(4, undefined, {
-    message: 'New password must be at least 4 characters long',
+    message: 'New password must be at least 4 characters long'
   })
-  newPassword: string;
+  newPassword: string
 }

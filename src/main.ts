@@ -1,16 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import {
-  BadRequestException,
-  ValidationError,
-  ValidationPipe,
-} from '@nestjs/common';
+import { ValidationPipe, BadRequestException, type ValidationError } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
+  const app = await NestFactory.create(AppModule)
+  app.setGlobalPrefix('api')
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -19,17 +15,17 @@ async function bootstrap() {
       stopAtFirstError: true,
       exceptionFactory: (errors: ValidationError[]) => {
         const message = errors.map(
-          (error) => Object.values(error.constraints || {})[0],
-        )[0];
-        return new BadRequestException(message);
-      },
-    }),
-  );
-  app.use(cookieParser());
+          (error) => Object.values(error.constraints || {})[0]
+        )[0]
+        return new BadRequestException(message)
+      }
+    })
+  )
+  app.use(cookieParser())
   app.enableCors({
     origin: process.env.CLIENT_URL,
-    credentials: true,
+    credentials: true
   });
-  await app.listen(process.env.PORT ?? 4000);
+  await app.listen(4000)
 }
-bootstrap();
+bootstrap()

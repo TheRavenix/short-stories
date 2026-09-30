@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Post,
@@ -18,88 +17,69 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly authService: AuthService,
-    private readonly userService: UserService,
-    private readonly hashService: HashService,
+    private authService: AuthService,
+    private userService: UserService,
+    private hashService: HashService
   ) {}
 
   @Post('sign-up')
-  async signUp(@Body() dto: SignUpDto, @Res() res: Response) {
-    try {
-      const user = await this.userService.findOneLean({
-        email: dto.email.toLowerCase(),
-      });
+  async signUp(
+    @Body() dto: SignUpDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.userService.findOneBy({
+      email: dto.email.toLowerCase()
+    })
 
-      if (user) {
-        throw new UnauthorizedException({
-          success: false,
-          message: 'This Email is linked with another account',
-        });
-      }
-
-      const createdUser = await this.userService.createUser(dto);
-      const authToken = await this.authService.generateAuthToken(
-        String(createdUser._id),
-      );
-      res.cookie('token', authToken, this.authService.getTokenCookieOptions());
-      res.json({ success: true, message: `Welcome Back ${createdUser.name}` });
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-
-      throw new BadRequestException({
-        success: false,
-        message: 'Sign up failed',
-      });
+    if (user !== null) {
+      throw new UnauthorizedException({
+        message: 'This email is already linked with another account'
+      })
     }
+
+    const createdUser = await this.userService.create(dto)
+    const authToken = await this.authService.generateAuthToken(
+      createdUser.id.toString()
+    )
+    res.cookie('token', authToken, this.authService.getTokenCookieOptions())
+    res.json({ message: `Welcome ${createdUser.name}` })
   }
 
   @Post('sign-in')
-  async signIn(@Body() dto: SignInDto, @Res() res: Response) {
-    try {
-      const user = await this.userService.findOneLeanWithPass({
+  async signIn(
+    @Body() dto: SignInDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.userService.findOneWithPassword(
+      {
         email: dto.email.toLowerCase(),
-      });
-
-      if (
-        !user ||
-        !(await this.hashService.compare(dto.password, user.password!))
-      ) {
-        throw new UnauthorizedException({
-          success: false,
-          message: 'Invalid credentials',
-        });
+      },
+      {
+        id: true,
+        name: true
       }
+    )
 
-      const authToken = await this.authService.generateAuthToken(
-        String(user._id),
-      );
-      res.cookie('token', authToken, this.authService.getTokenCookieOptions());
-      res.json({ success: true, message: `Welcome Back ${user.name}` });
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-
-      throw new BadRequestException({
-        success: false,
-        message: 'Sign in failed',
-      });
+    if (
+      user === null ||
+      !(await this.hashService.compare(dto.password, user.password))
+    ) {
+      throw new UnauthorizedException({
+        message: 'Invalid credentials'
+      })
     }
+
+    const authToken = await this.authService.generateAuthToken(
+      user.id.toString()
+    )
+    res.cookie('token', authToken, this.authService.getTokenCookieOptions())
+    res.json({ message: `Welcome Back ${user.name}` })
   }
 
   @Post('sign-out')
   @UseGuards(JwtAuthGuard)
-  signOut(@Res() res: Response) {
-    try {
-      res.clearCookie('token');
-      res.json({ success: true, message: 'Signed out successfully' });
-    } catch (error) {
-      throw new BadRequestException({
-        success: false,
-        message: 'Sign out failed',
-      });
-    }
+  signOut(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('token')
+    res.json({ message: 'Signed out successfully' })
   }
 }

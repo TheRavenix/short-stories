@@ -1,53 +1,66 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindOptionsSelect, FindOptionsWhere, Repository } from 'typeorm';
 
-import { User } from './user.model';
+import { User } from './user.entity';
 import { CreateUserDto } from './user.dto';
 import { HashService } from '../common/hash/hash.service';
-import { UserType } from './user.types';
 import { capitalize } from 'src/utils/capitalize';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<User>,
-    private readonly hashService: HashService,
+    @InjectRepository(User) private userRepository: Repository<User>,
+    private hashService: HashService
   ) {}
 
-  findOneLean(filter: Partial<UserType> = {}): Promise<UserType | null> {
-    return this.userModel.findOne(filter).lean<UserType>().exec();
+  findOneBy(where: FindOptionsWhere<User> = {}) {
+    return this.userRepository.findOneBy(where)
   }
 
-  findOneLeanWithPass(
-    filter: Partial<UserType> = {},
-  ): Promise<UserType | null> {
-    return this.userModel
-      .findOne(filter)
-      .select('+password')
-      .lean<UserType>()
-      .exec();
+  findOneWithPassword(
+    where: FindOptionsWhere<User> = {},
+    select: FindOptionsSelect<User> = {}
+  ) {
+    return this.userRepository.findOne({
+      where,
+      select: {
+        ...select,
+        password: true
+      }
+    })
   }
 
-  async createUser(dto: CreateUserDto): Promise<User> {
-    const user = await this.userModel.create({
+  async findOneByOrFail(where: FindOptionsWhere<User> = {}) {
+    const user = await this.userRepository.findOneBy(where)
+
+    if (user === null) {
+      throw new NotFoundException({
+        message: 'User not found'
+      })
+    }
+
+    return user
+  }
+
+  async create(dto: CreateUserDto) {
+    const user = this.userRepository.create({
       name: dto.name || this.generateUserName(dto.email),
       email: dto.email.toLowerCase(),
-      password: await this.hashService.hash(dto.password),
-    });
-    await user.save();
-    return user;
+      password: await this.hashService.hash(dto.password)
+    })
+    return this.userRepository.save(user)
   }
 
-  updateUser(id: string, update?: Partial<UserType>): Promise<User | null> {
-    return this.userModel.findByIdAndUpdate(id, update, { new: true }).exec();
+  update(where: FindOptionsWhere<User>, update: Partial<User> = {}) {
+    return this.userRepository.update(where, update)
   }
 
-  deleteUser(id: string): Promise<User | null> {
-    return this.userModel.findByIdAndDelete(id).exec();
+  delete(where: FindOptionsWhere<User>) {
+    return this.userRepository.delete(where)
   }
 
-  private generateUserName(email: string): string {
-    return capitalize(email.split('@')[0]) || 'Anonymous';
+  private generateUserName(email: string) {
+    return capitalize(email.split('@')[0]) || 'Reader'
   }
 }

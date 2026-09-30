@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { DeleteResult, Model, ObjectId } from 'mongoose';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 
-import { Story } from './story.model';
+import { Story } from './story.entity';
 import { CreateStoryDto, GetLibraryStoriesDto } from './story.dto';
-import { LibraryStories, StoryType } from './story.types';
 import {
   ALL_GENRES,
   ALL_PLANS,
@@ -15,80 +14,94 @@ import { slugify } from 'src/utils/slugify';
 @Injectable()
 export class StoryService {
   constructor(
-    @InjectModel(Story.name) private readonly storyModel: Model<Story>,
+    @InjectRepository(Story) private storyRepository: Repository<Story>
   ) {}
 
-  findAllLean(filter: Partial<StoryType> = {}): Promise<StoryType[]> {
-    return this.storyModel.find(filter).lean<StoryType[]>().exec();
+  find(where: FindOptionsWhere<Story> = {}) {
+    return this.storyRepository.find({ where })
   }
 
-  async getFeaturedStories(): Promise<StoryType[]> {
-    return this.storyModel.aggregate([{ $sample: { size: 6 } }]);
+  async getStoryIdBySlug(slug: string) {
+    const story = await this.storyRepository.findOne({
+      select: {
+        id: true
+      },
+      where: {
+        slug
+      }
+    })
+
+    if (story === null) {
+      throw new NotFoundException({
+        message: 'Story not found'
+      })
+    }
+
+    return story
   }
 
-  getStoryIdBySlug(slug: string): Promise<{ _id: ObjectId } | null> {
-    return this.storyModel
-      .findOne({ slug })
-      .select('id')
-      .lean<{ _id: ObjectId }>()
-      .exec();
-  }
-
-  async findAllLeanPaginated(
-    filter: Partial<StoryType> = {},
+  async findPaginated(
+    where: FindOptionsWhere<Story> = {},
     skip = 0,
-    limit = PAGINATION_LIMIT,
-  ): Promise<LibraryStories> {
+    take = PAGINATION_LIMIT
+  ) {
     const [stories, count] = await Promise.all([
-      this.storyModel
-        .find(filter)
-        .skip(skip)
-        .limit(limit)
-        .lean<StoryType[]>()
-        .exec(),
-      this.storyModel.countDocuments(filter),
-    ]);
-    return { stories, count };
+      this.storyRepository.find({
+        where,
+        skip,
+        take
+      }),
+      this.storyRepository.count({
+        where
+      })
+    ])
+    return {
+      stories,
+      count
+    }
   }
 
-  findOneLean(filter: Partial<StoryType> = {}): Promise<StoryType | null> {
-    return this.storyModel.findOne(filter).lean<StoryType>().exec();
+  findOneBy(where: FindOptionsWhere<Story> = {}) {
+    return this.storyRepository.findOneBy(where)
   }
 
-  async createStory(dto: CreateStoryDto, userId: any): Promise<Story> {
-    const story = await this.storyModel.create({
+  async findOneByOrFail(where: FindOptionsWhere<Story> = {}) {
+    const user = await this.storyRepository.findOneBy(where)
+
+    if (user === null) {
+      throw new NotFoundException('Story not found')
+    }
+
+    return user
+  }
+
+  create(dto: CreateStoryDto, userId: number) {
+    const story = this.storyRepository.create({
       userId,
       ...dto,
-      slug: slugify(dto.name),
-    });
-    await story.save();
-    return story;
+      slug: slugify(dto.name)
+    })
+    return this.storyRepository.save(story)
   }
 
-  updateStory(id: string, update?: Partial<StoryType>): Promise<Story | null> {
-    return this.storyModel.findByIdAndUpdate(id, update, { new: true }).exec();
+  update(where: FindOptionsWhere<Story> = {}, update: Partial<Story> = {}) {
+    return this.storyRepository.update(where, update)
   }
 
-  deleteOne(filter: Partial<StoryType> = {}): Promise<DeleteResult> {
-    return this.storyModel.deleteOne(filter);
+  delete(where: FindOptionsWhere<Story> = {}) {
+    return this.storyRepository.delete(where)
   }
 
-  deleteMany(filter: Partial<StoryType> = {}) {
-    return this.storyModel.deleteMany(filter);
-  }
-
-  buildLibraryStoriesFilters(
-    dto: GetLibraryStoriesDto,
-  ): Record<string, string> {
-    const filters = {};
+  buildLibraryStoriesFilters(dto: GetLibraryStoriesDto) {
+    const filters = {}
 
     if (dto.plan && dto.plan.toLowerCase() !== ALL_PLANS) {
-      filters['plan'] = dto.plan.toLowerCase();
+      filters['plan'] = dto.plan.toLowerCase()
     }
     if (dto.genre && dto.genre.toLowerCase() !== ALL_GENRES) {
-      filters['genre'] = dto.genre.toLowerCase();
+      filters['genre'] = dto.genre.toLowerCase()
     }
 
-    return filters;
+    return filters
   }
 }

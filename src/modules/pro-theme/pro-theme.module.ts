@@ -8,6 +8,6 @@ import { UserProGuard } from '../user/guards/user-pro.guard';
 @Module({
   imports: [UserModule],
   controllers: [ProThemeController],
-  providers: [ProThemeService, UserProGuard],
+  providers: [ProThemeService, UserProGuard]
 })
 export class ProThemeModule {}

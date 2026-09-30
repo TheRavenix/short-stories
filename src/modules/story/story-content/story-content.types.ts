@@ -1,6 +1,6 @@
 export interface StoryContentType {
-  _id: any;
-  storyId: any;
+  id: number;
+  storyId: number;
   content: string[];
   createdAt: Date;
   updatedAt: Date;

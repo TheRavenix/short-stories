@@ -7,21 +7,22 @@ import { UserRole } from '../user.constants';
 
 @Injectable()
 export class UserAdminGuard implements CanActivate {
-  constructor(private readonly userService: UserService) {}
+  constructor(private userService: UserService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
 
-    if (!request.user) {
+    if (request.user === undefined) {
       return false;
     }
 
     const currentUser = request.user as CurrentUserType;
-    const user = await this.userService.findOneLean({
-      _id: currentUser.id,
+
+    const user = await this.userService.findOneBy({
+      id: currentUser.id,
     });
 
-    if (!user || user.role !== UserRole.Admin) {
+    if (user === null || user.role !== UserRole.Admin) {
       return false;
     }
 

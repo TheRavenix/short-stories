@@ -11,6 +11,6 @@ export class ProThemeController {
   @Get()
   @UseGuards(JwtAuthGuard, UserProGuard)
   getAll() {
-    return this.proThemeService.readThemes();
+    return this.proThemeService.readThemes()
   }
 }
