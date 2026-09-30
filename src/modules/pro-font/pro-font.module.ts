@@ -8,6 +8,6 @@ import { UserProGuard } from '../user/guards/user-pro.guard';
 @Module({
   imports: [UserModule],
   controllers: [ProFontController],
-  providers: [ProFontService, UserProGuard],
+  providers: [ProFontService, UserProGuard]
 })
 export class ProFontModule {}

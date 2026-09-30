@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -14,78 +15,82 @@ import { UserPlan } from '../user/user.constants';
 
 export class CreateStoryDto {
   @Length(1, undefined, { message: 'Story name is too short' })
-  name: string;
+  name: string
 
   @Length(1, undefined, { message: 'Story description is too short' })
-  description: string;
+  description: string
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  about?: string[];
+  about?: string[]
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  preview?: string[];
+  preview?: string[]
 
   @IsEnum(StoryGenre, {
     each: true,
     message: 'Please provide a valid story genre',
   })
-  genre: StoryGenre[];
+  genre: StoryGenre[]
 
   @IsString({ message: 'Please provide a cover image' })
-  coverImage: string;
+  coverImage: string
 
   @IsOptional()
   @IsEnum(UserPlan, { message: 'Invalid plan' })
-  plan?: UserPlan;
+  plan?: UserPlan
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  content?: string[];
+  content?: string[]
+
+  @IsOptional()
+  @IsBoolean()
+  featured?: boolean
 }
 
 export class EditStoryDto {
   @IsOptional()
   @Length(1, undefined, { message: 'Story name is too short' })
-  name: string;
+  name: string
 
   @IsOptional()
   @Length(1, undefined, { message: 'Story description is too short' })
-  description: string;
+  description: string
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  about?: string[];
+  about?: string[]
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  preview?: string[];
+  preview?: string[]
 
   @IsOptional()
   @IsEnum(StoryGenre, {
     each: true,
     message: 'Please provide a valid story genre',
   })
-  genre: StoryGenre[];
+  genre: StoryGenre[]
 
   @IsOptional()
   @IsString({ message: 'Please provide a cover image' })
-  coverImage: string;
+  coverImage: string
 
   @IsOptional()
   @IsEnum(UserPlan, { message: 'Invalid plan' })
-  plan?: UserPlan;
+  plan?: UserPlan
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  content?: string[];
+  content?: string[]
 }
 
 export class GetLibraryStoriesDto {
@@ -93,21 +98,21 @@ export class GetLibraryStoriesDto {
   @Transform(({ value }) => (value !== undefined ? Number(value) : value))
   @IsNumber()
   @Min(0)
-  skip?: number;
+  skip?: number
 
   @IsOptional()
   @Transform(({ value }) => (value !== undefined ? Number(value) : value))
   @IsNumber()
   @Min(0)
-  limit?: number;
+  limit?: number
 
   @IsOptional()
   @IsString()
-  q: string;
+  q: string
 
   @IsOptional()
-  plan?: UserPlan | string;
+  plan?: UserPlan | string
 
   @IsOptional()
-  genre?: StoryGenre | string;
+  genre?: StoryGenre | string
 }

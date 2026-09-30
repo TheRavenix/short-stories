@@ -1,10 +1,10 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   Patch,
   UnauthorizedException,
@@ -21,72 +21,27 @@ import { CurrentUser } from './decorators/current-user.decorator';
 @Controller('users')
 export class UserController {
   constructor(
-    private readonly userService: UserService,
-    private readonly hashService: HashService,
+    private userService: UserService,
+    private hashService: HashService
   ) {}
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   async getProfile(@CurrentUser() currentUser: CurrentUserType) {
-    try {
-      const user = await this.userService.findOneLean({
-        _id: currentUser.id,
-      });
-
-      if (!user) {
-        throw new NotFoundException({
-          success: false,
-          message: 'No user found',
-        });
-      }
-
-      return {
-        success: true,
-        data: user,
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-
-      throw new BadRequestException({
-        success: false,
-        message: 'Failed to get profile',
-      });
-    }
+    return this.userService.findOneByOrFail({
+      id: currentUser.id
+    })
   }
 
   @Get('status')
   @UseGuards(JwtAuthGuard)
   async getStatus(@CurrentUser() currentUser: CurrentUserType) {
-    try {
-      const user = await this.userService.findOneLean({
-        _id: currentUser.id,
-      });
-
-      if (!user) {
-        throw new NotFoundException({
-          success: false,
-          message: 'No user found',
-        });
-      }
-
-      return {
-        success: true,
-        data: {
-          plan: user.plan,
-          role: user.role,
-        },
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-
-      throw new BadRequestException({
-        success: false,
-        message: 'Failed to get status',
-      });
+    const user = await this.userService.findOneByOrFail({
+      id: currentUser.id
+    })
+    return {
+      plan: user.plan,
+      role: user.role
     }
   }
 
@@ -96,37 +51,26 @@ export class UserController {
     @CurrentUser() currentUser: CurrentUserType,
     @Body() dto: EditNameDto,
   ) {
-    try {
-      const user = await this.userService.findOneLean({
-        _id: currentUser.id,
-      });
+    const user = await this.userService.findOneByOrFail({
+      id: currentUser.id
+    })
 
-      if (!user) {
-        throw new NotFoundException({
-          success: false,
-          message: 'No user found',
-        });
-      }
-      if (user.name === dto.name) {
-        return { success: true, message: 'This is already your current name' };
-      }
-
-      await this.userService.updateUser(currentUser.id, {
-        name: dto.name,
-      });
+    if (user.name === dto.name) {
       return {
-        success: true,
-        message: 'Your name have been edited successfully',
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
+        message: 'This is already your current name'
       }
+    }
 
-      throw new BadRequestException({
-        success: false,
-        message: 'Failed to edit your name',
-      });
+    await this.userService.update(
+      {
+        id: currentUser.id
+      },
+      {
+        name: dto.name
+      }
+    )
+    return {
+      message: 'Your name have been edited successfully'
     }
   }
 
@@ -136,57 +80,41 @@ export class UserController {
     @Body() dto: EditEmailDto,
     @CurrentUser() currentUser: CurrentUserType,
   ) {
-    try {
-      const user = await this.userService.findOneLean({
-        _id: currentUser.id,
-      });
+    const user = await this.userService.findOneByOrFail({
+      id: currentUser.id
+    })
 
-      if (!user) {
-        throw new NotFoundException({
-          success: false,
-          message: 'No user found',
-        });
-      }
-      if (user.email !== dto.currentEmail) {
-        throw new UnauthorizedException({
-          success: false,
-          message: 'Incorrect email address',
-        });
-      }
-      if (user.email === dto.newEmail) {
-        return { success: true, message: 'This is your current email' };
-      }
-
-      const userWithEmail = await this.userService.findOneLean({
-        email: dto.newEmail,
-      });
-
-      if (userWithEmail) {
-        throw new UnauthorizedException({
-          success: false,
-          message: 'This email is already linked with another Account',
-        });
-      }
-
-      await this.userService.updateUser(currentUser.id, {
-        email: dto.newEmail,
-      });
-      return {
-        success: true,
-        message: 'Your email have been edited successfully',
-      };
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
-
+    if (user.email !== dto.currentEmail) {
       throw new BadRequestException({
-        success: false,
-        message: 'Failed to edit your email',
-      });
+        message: 'Incorrect email address'
+      })
+    }
+    if (user.email === dto.newEmail) {
+      throw new BadRequestException({
+        message: 'New email must be different from current email'
+      })
+    }
+
+    const userWithEmail = await this.userService.findOneBy({
+      email: dto.newEmail,
+    })
+
+    if (userWithEmail !== null) {
+      throw new ConflictException({
+        message: 'This email is already linked with another account'
+      })
+    }
+
+    await this.userService.update(
+      {
+        id: currentUser.id
+      },
+      {
+        email: dto.newEmail
+      }
+    )
+    return {
+      message: 'Your email have been edited successfully'
     }
   }
 
@@ -196,48 +124,31 @@ export class UserController {
     @Body() dto: ChangePasswordDto,
     @CurrentUser() currentUser: CurrentUserType,
   ) {
-    try {
-      const user = await this.userService.findOneLeanWithPass({
-        _id: currentUser.id,
-      });
+    const user = await this.userService.findOneByOrFail({
+      id: currentUser.id
+    })
 
-      if (!user) {
-        throw new NotFoundException({
-          success: false,
-          message: 'No user found',
-        });
-      }
-      if (
-        !(await this.hashService.compare(dto.currentPassword, user.password!))
-      ) {
-        throw new UnauthorizedException({
-          success: false,
-          message: 'Incorrect password',
-        });
-      }
-      if (await this.hashService.compare(dto.newPassword, user.password!)) {
-        return { success: true, message: 'This is your current password' };
-      }
-
-      await this.userService.updateUser(currentUser.id, {
-        password: await this.hashService.hash(dto.newPassword),
-      });
-      return {
-        success: true,
-        message: 'Your password have been changed successfully',
-      };
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
-
+    if (!(await this.hashService.compare(dto.currentPassword, user.password))) {
       throw new BadRequestException({
-        success: false,
-        message: 'Failed to change your password',
-      });
+        message: 'Incorrect password'
+      })
+    }
+    if (await this.hashService.compare(dto.newPassword, user.password)) {
+      throw new BadRequestException({
+        message: 'New password must be different from current password'
+      })
+    }
+
+    await this.userService.update(
+      {
+        id: currentUser.id
+      },
+      {
+        password: await this.hashService.hash(dto.newPassword)
+      }
+    )
+    return {
+      message: 'Your password have been changed successfully'
     }
   }
 
@@ -247,41 +158,17 @@ export class UserController {
     @Param('id') id: string,
     @CurrentUser() currentUser: CurrentUserType,
   ) {
-    try {
-      const user = await this.userService.findOneLean({
-        _id: currentUser.id,
-      });
+    if (parseInt(id) !== currentUser.id) {
+      throw new UnauthorizedException({
+        message: 'You are not allowed to delete this account'
+      })
+    }
 
-      if (!user) {
-        throw new NotFoundException({
-          success: false,
-          message: 'No user found',
-        });
-      }
-      if (id !== currentUser.id) {
-        throw new UnauthorizedException({
-          success: false,
-          message: 'You are not allowed to delete this account',
-        });
-      }
-
-      await this.userService.deleteUser(currentUser.id);
-      return {
-        success: true,
-        message: 'Your account have been deleted successfully',
-      };
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
-
-      throw new BadRequestException({
-        success: false,
-        message: 'Failed to delete your account',
-      });
+    await this.userService.delete({
+      id: currentUser.id,
+    })
+    return {
+      message: 'Your account have been deleted successfully'
     }
   }
 }

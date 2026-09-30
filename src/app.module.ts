@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -11,27 +9,23 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProThemeModule } from './modules/pro-theme/pro-theme.module';
 import { ProFontModule } from './modules/pro-font/pro-font.module';
 import { StoryModule } from './modules/story/story.module';
-import { StoryContentModule } from './modules/story-content/story-content.module';
-import { StoryReviewModule } from './modules/story-review/story-review.module';
+import { StoryContentModule } from './modules/story/story-content/story-content.module';
+import { StoryReviewModule } from './modules/story/story-review/story-review.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    MongooseModule.forRootAsync({
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        uri: config.get<string>(
-          config.get('NODE_ENV') === 'development' ? 'DB_URI_DEV' : 'DB_URI',
-        ),
-        dbName: 'short-stories-db',
-      }),
       inject: [ConfigService],
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/images',
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        url: configService.get('DATABASE_URL'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
+        migrationsRun: false,
+        synchronize: false
+      })
     }),
     UserModule,
     AuthModule,
@@ -39,9 +33,9 @@ import { StoryReviewModule } from './modules/story-review/story-review.module';
     ProFontModule,
     StoryModule,
     StoryContentModule,
-    StoryReviewModule,
+    StoryReviewModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService]
 })
 export class AppModule {}
