@@ -48,10 +48,11 @@ export class StoryReviewService {
     )
   }
 
-  create(dto: CreateStoryReviewDto, userId: number) {
+  create(dto: CreateStoryReviewDto, userId: number, storyId: number) {
     const story = this.storyReviewRepository.create({
       ...dto,
-      userId
+      userId,
+      storyId
     })
     return this.storyReviewRepository.save(story)
   }

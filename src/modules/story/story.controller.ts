@@ -161,7 +161,7 @@ export class StoryController {
   @UseGuards(JwtAuthGuard, UserAdminGuard)
   async createStory(
     @CurrentUser() currentUser: CurrentUserType,
-    @Body() dto: CreateStoryDto,
+    @Body() dto: CreateStoryDto
   ) {
     const story = await this.storyService.create(dto, currentUser.id)
     await this.storyContentService.create({
