@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -24,7 +25,8 @@ import { StoryReviewModule } from './modules/story/story-review/story-review.mod
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         migrationsRun: false,
-        synchronize: false
+        synchronize: false,
+        namingStrategy: new SnakeNamingStrategy()
       })
     }),
     UserModule,

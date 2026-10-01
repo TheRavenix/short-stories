@@ -1,5 +1,4 @@
 import {
-  IsMongoId,
   IsNumber,
   IsOptional,
   Length,
@@ -8,9 +7,6 @@ import {
 } from 'class-validator';
 
 export class CreateStoryReviewDto {
-  @IsMongoId()
-  storyId: any
-
   @IsNumber()
   @Min(1)
   @Max(5)
@@ -27,11 +23,11 @@ export class EditStoryReviewDto {
   @IsNumber()
   @Min(1)
   @Max(5)
-  stars: number
+  stars?: number
 
   @IsOptional()
   @Length(1, undefined, {
     message: 'Story review comment cannot be empty'
   })
-  comment: string
+  comment?: string
 }

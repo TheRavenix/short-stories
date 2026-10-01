@@ -89,15 +89,16 @@ export class StoryReviewController {
     }
   }
 
-  @Post()
+  @Post(':storyId')
   @UseGuards(JwtAuthGuard)
   async createStoryReview(
     @CurrentUser() currentUser: CurrentUserType,
-    @Body() dto: CreateStoryReviewDto,
+    @Param('storyId') storyId: string,
+    @Body() dto: CreateStoryReviewDto
   ) {
     const storyReview = await this.storyReviewService.findOneBy({
       userId: currentUser.id,
-      storyId: dto.storyId
+      storyId: parseInt(storyId)
     })
 
     if (storyReview !== null) {
@@ -106,7 +107,7 @@ export class StoryReviewController {
       })
     }
 
-    await this.storyReviewService.create(dto, currentUser.id)
+    await this.storyReviewService.create(dto, currentUser.id, parseInt(storyId))
     return {
       message: 'Your review have been posted successfully'
     }

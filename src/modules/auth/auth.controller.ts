@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Post,
@@ -32,17 +33,15 @@ export class AuthController {
     })
 
     if (user !== null) {
-      throw new UnauthorizedException({
+      throw new BadRequestException({
         message: 'This email is already linked with another account'
       })
     }
 
     const createdUser = await this.userService.create(dto)
-    const authToken = await this.authService.generateAuthToken(
-      createdUser.id.toString()
-    )
-    res.cookie('token', authToken, this.authService.getTokenCookieOptions())
-    res.json({ message: `Welcome ${createdUser.name}` })
+    return {
+      message: `Welcome ${createdUser.name}`
+    }
   }
 
   @Post('sign-in')
@@ -73,13 +72,18 @@ export class AuthController {
       user.id.toString()
     )
     res.cookie('token', authToken, this.authService.getTokenCookieOptions())
-    res.json({ message: `Welcome Back ${user.name}` })
+    res.json({
+      message: `Welcome Back ${user.name}`,
+      token: authToken
+    })
   }
 
   @Post('sign-out')
   @UseGuards(JwtAuthGuard)
   signOut(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('token')
-    res.json({ message: 'Signed out successfully' })
+    res.json({
+      message: 'Signed out successfully'
+    })
   }
 }
