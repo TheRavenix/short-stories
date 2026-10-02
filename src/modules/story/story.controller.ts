@@ -7,10 +7,12 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { ILike } from 'typeorm';
+import jsPDF from 'jspdf';
+import { Response } from 'express';
 
 import {
   CreateStoryDto,
@@ -21,123 +23,24 @@ import { StoryService } from './story.service';
 import { CurrentUserType } from '../user/user.types';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { StoryGenre } from './story.constants';
-import { UserAdminGuard } from '../user/guards/user-admin.guard';
+// import { UserAdminGuard } from '../user/guards/user-admin.guard';
 import { CurrentUser } from '../user/decorators/current-user.decorator';
 import { UserPlan } from '../user/user.constants';
-import { StoryContentService } from './story-content/story-content.service';
-import { StoryReviewService } from './story-review/story-review.service';
-import { UserService } from '../user/user.service';
 import { capitalize } from 'src/utils/capitalize';
 import { slugify } from 'src/utils/slugify';
-import { Story } from './story.entity';
-import { StoryReview } from './story-review/story-review.entity';
-import { StoryRating } from './story.types';
-import { StoryReviewDetails } from './story-review/story-review.types';
 
 @Controller('stories')
 export class StoryController {
-  constructor(
-    private storyService: StoryService,
-    private storyContentService: StoryContentService,
-    private storyReviewService: StoryReviewService,
-    private userService: UserService
-  ) {}
+  constructor(private storyService: StoryService) {}
 
   @Get('featured')
-  async getFeaturedStories() {
-    let stories: Story[] = []
-    let reviews: StoryReview[] = []
-    let reviewsDetails: StoryReviewDetails[] = []
-    let ratings: StoryRating[] = []
-    const featuredStories = await this.storyService.find({
-      featured: true
-    })
-
-    for (const featuredStory of featuredStories) {
-      const [ratingCount, featuredReview] = await Promise.all([
-        this.storyReviewService.getStoryRatingCount(featuredStory.id),
-        this.storyReviewService.findOneBy({
-          storyId: featuredStory.id
-        })
-      ])
-
-      stories = [
-        ...stories,
-        featuredStory
-      ]
-      ratings = [
-        ...ratings,
-        {
-          storyId: featuredStory.id,
-          ratingCount
-        }
-      ]
-
-      if (featuredReview === null) {
-        continue
-      }
-
-      const featuredReviewUser = await this.userService.findOneBy({
-        id: featuredReview.userId
-      })
-
-      if (featuredReviewUser === null) {
-        continue
-      }
-
-      reviews = [
-        ...reviews,
-        {
-          ...featuredReview,
-
-        }
-      ]
-      reviewsDetails = [
-        ...reviewsDetails,
-        {
-          storyReviewId: featuredReview.id,
-          userName: featuredReviewUser.name,
-          storyName: featuredStory.name,
-          storySlug: featuredStory.slug
-        }
-      ]
-    }
-
-    return {
-      stories,
-      reviews,
-      reviewsDetails
-    }
+  getFeaturedStories() {
+    return this.storyService.find({ featured: true })
   }
 
   @Get('library')
   async getLibraryStories(@Query() dto: GetLibraryStoriesDto) {
-    const libraryStories = await this.storyService.findPaginated(
-      {
-        name: ILike(`%${dto.q ?? ''}%`),
-        ...this.storyService.buildLibraryStoriesFilters(dto),
-      },
-      dto.skip,
-      dto.limit
-    )
-    let ratings: StoryRating[] = []
-
-    for (const story of libraryStories.stories) {
-      const ratingCount = await this.storyReviewService.getStoryRatingCount(story.id)
-      ratings = [
-        ...ratings,
-        {
-          storyId: story.id,
-          ratingCount
-        }
-      ]
-    }
-
-    return {
-      stories: libraryStories.stories,
-      storiesCount: libraryStories.count,
-      ratings
-    }
+    return this.storyService.getLibraryStories(dto)
   }
 
   @Get(':slug/id')
@@ -146,26 +49,17 @@ export class StoryController {
   }
 
   @Get(':slug')
-  async findOneBySlug(@Param('slug') slug: string) {
-    const story = await this.storyService.findOneByOrFail({ slug })
-    const ratingCount = await this.storyReviewService.getStoryRatingCount(story.id)
-    return {
-      story,
-      ratingCount
-    }
+  findOneBySlug(@Param('slug') slug: string) {
+    return this.storyService.findOneByOrFail({ slug })
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, UserAdminGuard)
+  // @UseGuards(JwtAuthGuard, UserAdminGuard)
   async createStory(
     @CurrentUser() currentUser: CurrentUserType,
     @Body() dto: CreateStoryDto
   ) {
     const story = await this.storyService.create(dto, currentUser.id)
-    await this.storyContentService.create({
-      storyId: story.id,
-      content: dto.content
-    })
     return {
       message: `Story '${story.name}' have been created successfully`
     }
@@ -183,75 +77,57 @@ export class StoryController {
     )
   }
 
-  /* @Post('download/:id')
+  @Post('download/:id')
   @UseGuards(JwtAuthGuard)
   async downloadStory(@Param('id') id: string, @Res() res: Response) {
-    const story = await this.storyService.findOneBy({ id: parseInt(id) });
+    const story = await this.storyService.findOneByOrFail({
+      id: parseInt(id)
+    })
+    const doc = new jsPDF()
 
-    const doc = new jsPDF();
+    doc.text(`Story: ${story.name}`, 10, 10)
 
-    doc.text(`Story: ${story.name}`, 10, 10);
-
-    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+    const pdfBuffer = Buffer.from(doc.output('arraybuffer'))
 
     await this.storyService.update(
       {
         id: parseInt(id),
       },
       {
-        downloads: story.downloads + 1,
-      },
-    );
+        downloads: story.downloads + 1
+      }
+    )
 
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename=${story.name}.pdf`,
-      'Content-Length': pdfBuffer.length,
-    });
-
-    res.end(pdfBuffer);
-  } */
+      'Content-Length': pdfBuffer.length
+    })
+    res.end(pdfBuffer)
+  }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, UserAdminGuard)
+  // @UseGuards(JwtAuthGuard, UserAdminGuard)
   async editStory(@Param('id') id: string, @Body() dto: EditStoryDto) {
-    const story = await this.storyService.findOneByOrFail({
-      id: parseInt(id)
-    })
-    const storyContent = await this.storyContentService.findOneByOrFail({
-      storyId: story.id
-    })
-
     const slug = slugify(dto.name)
-    await Promise.all([
-      this.storyService.update(
-        { 
-          id: parseInt(id)
-        },
-        {
-          ...dto,
-          slug
-        }
-      ),
-      this.storyContentService.update(
-        {
-          id: storyContent.id
-        },
-        {
-          content: dto.content
-        }
-      )
-    ]);
-
+    await this.storyService.update(
+      { 
+        id: parseInt(id)
+      },
+      {
+        ...dto,
+        slug
+      }
+    )
     return {
       message: 'Story have been edited successfully',
       slug
     }
   }
 
+  // This route is for develpment only, it has to be deleted
   @Post('fake-stories')
-  @UseGuards(JwtAuthGuard, UserAdminGuard)
-  @MarkForDeletion(MarkForDeletionReason.Testing)
+  // @UseGuards(JwtAuthGuard, UserAdminGuard)
   createFakeStories(@CurrentUser() currentUser: CurrentUserType) {
     const chars = 'azertyuiopqsdfghjklmwxcvbn123456789'
 
@@ -284,7 +160,7 @@ export class StoryController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, UserAdminGuard)
+  // @UseGuards(JwtAuthGuard, UserAdminGuard)
   async deleteStory(
     @CurrentUser() currentUser: CurrentUserType,
     @Param('id') id: string,
@@ -300,11 +176,7 @@ export class StoryController {
       })
     }
 
-    await Promise.all([
-      this.storyService.delete({ id: parseInt(id) }),
-      this.storyContentService.delete({ storyId: parseInt(id) }),
-      this.storyReviewService.delete({ storyId: parseInt(id) })
-    ])
+    await this.storyService.delete({ id: parseInt(id) })
     return {
       message: 'Story have been deleted successfully'
     }
@@ -312,13 +184,9 @@ export class StoryController {
 
   // This route is for develpment only, it has to be deleted
   @Delete()
-  @UseGuards(JwtAuthGuard, UserAdminGuard)
+  // @UseGuards(JwtAuthGuard, UserAdminGuard)
   async deleteAll() {
-    await Promise.all([
-      this.storyService.delete(),
-      this.storyContentService.delete(),
-      this.storyReviewService.delete()
-    ])
+    await this.storyService.delete()
     return { message: 'done' }
   }
 }

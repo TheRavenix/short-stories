@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { StoryReviewController } from './story-review.controller';
@@ -11,7 +11,7 @@ import { StoryModule } from '../story.module';
   imports: [
     TypeOrmModule.forFeature([StoryReview]),
     UserModule,
-    forwardRef(() => StoryModule),
+    StoryModule
   ],
   controllers: [StoryReviewController],
   providers: [StoryReviewService],

@@ -2,11 +2,11 @@ import { Controller, Get, UseGuards } from '@nestjs/common';
 
 import { ProFontService } from './pro-font.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { UserProGuard } from '../user/guards/user-pro.guard';
+import { UserProGuard } from 'src/common/guards/user-pro.guard';
 
 @Controller('pro-fonts')
 export class ProFontController {
-  constructor(private readonly proFontService: ProFontService) {}
+  constructor(private proFontService: ProFontService) {}
 
   @Get()
   @UseGuards(JwtAuthGuard, UserProGuard)

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 
 import { Story } from './story.entity';
 import { CreateStoryDto, GetLibraryStoriesDto } from './story.dto';
@@ -10,6 +10,8 @@ import {
   PAGINATION_LIMIT,
 } from 'src/common/constants/filters.constant';
 import { slugify } from 'src/utils/slugify';
+import { UserPlan } from '../user/user.constants';
+import { StoryGenre } from './story.constants';
 
 @Injectable()
 export class StoryService {
@@ -61,6 +63,28 @@ export class StoryService {
     }
   }
 
+  getLibraryStories(dto: GetLibraryStoriesDto) {
+    let plan: UserPlan | undefined
+    let genre: StoryGenre | undefined
+
+    if (dto.plan !== undefined && dto.plan.toLowerCase() !== ALL_PLANS) {
+      plan = dto.plan.toLowerCase() as UserPlan
+    }
+    if (dto.genre !== undefined && dto.genre.toLowerCase() !== ALL_GENRES) {
+      genre = dto.genre.toLowerCase() as StoryGenre
+    }
+
+    return this.findPaginated(
+      {
+        name: ILike(`%${dto.q ?? ''}%`),
+        plan,
+        genre
+      },
+      dto.skip,
+      dto.limit
+    )
+  }
+
   findOneBy(where: FindOptionsWhere<Story> = {}) {
     return this.storyRepository.findOneBy(where)
   }
@@ -90,18 +114,5 @@ export class StoryService {
 
   delete(where: FindOptionsWhere<Story> = {}) {
     return this.storyRepository.delete(where)
-  }
-
-  buildLibraryStoriesFilters(dto: GetLibraryStoriesDto) {
-    const filters = {}
-
-    if (dto.plan && dto.plan.toLowerCase() !== ALL_PLANS) {
-      filters['plan'] = dto.plan.toLowerCase()
-    }
-    if (dto.genre && dto.genre.toLowerCase() !== ALL_GENRES) {
-      filters['genre'] = dto.genre.toLowerCase()
-    }
-
-    return filters
   }
 }
