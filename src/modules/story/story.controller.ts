@@ -22,12 +22,8 @@ import {
 import { StoryService } from './story.service';
 import { CurrentUserType } from '../user/user.types';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { StoryGenre } from './story.constants';
-// import { UserAdminGuard } from '../user/guards/user-admin.guard';
 import { CurrentUser } from '../user/decorators/current-user.decorator';
-import { UserPlan } from '../user/user.constants';
-import { capitalize } from 'src/utils/capitalize';
-import { slugify } from 'src/utils/slugify';
+import { UserAdminGuard } from 'src/common/guards/user-admin.guard';
 
 @Controller('stories')
 export class StoryController {
@@ -39,7 +35,7 @@ export class StoryController {
   }
 
   @Get('library')
-  async getLibraryStories(@Query() dto: GetLibraryStoriesDto) {
+  getLibraryStories(@Query() dto: GetLibraryStoriesDto) {
     return this.storyService.getLibraryStories(dto)
   }
 
@@ -54,7 +50,7 @@ export class StoryController {
   }
 
   @Post()
-  // @UseGuards(JwtAuthGuard, UserAdminGuard)
+  @UseGuards(JwtAuthGuard, UserAdminGuard)
   async createStory(
     @CurrentUser() currentUser: CurrentUserType,
     @Body() dto: CreateStoryDto
@@ -107,7 +103,7 @@ export class StoryController {
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard, UserAdminGuard)
+  @UseGuards(JwtAuthGuard, UserAdminGuard)
   async editStory(@Param('id') id: string, @Body() dto: EditStoryDto) {
     const slug = slugify(dto.name)
     await this.storyService.update(
@@ -125,42 +121,8 @@ export class StoryController {
     }
   }
 
-  // This route is for develpment only, it has to be deleted
-  @Post('fake-stories')
-  // @UseGuards(JwtAuthGuard, UserAdminGuard)
-  createFakeStories(@CurrentUser() currentUser: CurrentUserType) {
-    const chars = 'azertyuiopqsdfghjklmwxcvbn123456789'
-
-    const getRandomName = () => {
-      let name = ''
-      for (let i = 0; i < 5; i++) {
-        name += chars[Math.floor(Math.random() * chars.length)]
-      }
-      return name
-    }
-
-    const content: string[] = []
-    for (let i = 0; i < 100; i++) {
-      content.push('Hello world! '.repeat(10))
-    }
-    for (let i = 0; i < 25; i++) {
-      const storyName = `${capitalize(getRandomName())} ${capitalize(getRandomName())}`
-      this.createStory(currentUser, {
-        name: storyName,
-        description: `Story description ${i + 1}`,
-        coverImage: 'short-story-cover.jpeg',
-        genre:
-          Math.random() > 0.5 ? [StoryGenre.Adventure] : [StoryGenre.Mystery],
-        plan: UserPlan.Free,
-        content: [`Hello ${storyName} `.repeat(10), ...content]
-      })
-      console.log(`Story ${i} done`)
-    }
-    return { message: 'done' }
-  }
-
   @Delete(':id')
-  // @UseGuards(JwtAuthGuard, UserAdminGuard)
+  @UseGuards(JwtAuthGuard, UserAdminGuard)
   async deleteStory(
     @CurrentUser() currentUser: CurrentUserType,
     @Param('id') id: string,
@@ -180,13 +142,5 @@ export class StoryController {
     return {
       message: 'Story have been deleted successfully'
     }
-  }
-
-  // This route is for develpment only, it has to be deleted
-  @Delete()
-  // @UseGuards(JwtAuthGuard, UserAdminGuard)
-  async deleteAll() {
-    await this.storyService.delete()
-    return { message: 'done' }
   }
 }
