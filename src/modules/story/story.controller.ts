@@ -20,8 +20,6 @@ import {
 import { StoryService } from './story.service';
 import { CurrentUserType } from '../user/user.types';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { MarkForDeletion } from 'src/common/decorators/mark-for-deletion.decorator';
-import { MarkForDeletionReason } from 'src/common/constants/mark-for-deletion-reason.constant';
 import { StoryGenre } from './story.constants';
 import { UserAdminGuard } from '../user/guards/user-admin.guard';
 import { CurrentUser } from '../user/decorators/current-user.decorator';
@@ -312,9 +310,9 @@ export class StoryController {
     }
   }
 
+  // This route is for develpment only, it has to be deleted
   @Delete()
   @UseGuards(JwtAuthGuard, UserAdminGuard)
-  @MarkForDeletion(MarkForDeletionReason.Testing)
   async deleteAll() {
     await Promise.all([
       this.storyService.delete(),

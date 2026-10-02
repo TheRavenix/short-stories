@@ -33,6 +33,7 @@ export class UserController {
     })
   }
 
+  // Is this still needed?
   @Get('status')
   @UseGuards(JwtAuthGuard)
   async getStatus(@CurrentUser() currentUser: CurrentUserType) {
