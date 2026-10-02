@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -18,8 +19,10 @@ import { CurrentUserType } from '../../user/user.types';
 import { CreateStoryReviewDto, EditStoryReviewDto } from './story-review.dto';
 import { UserService } from '../../user/user.service';
 import { StoryService } from '../story.service';
-import { UserRole } from '../../user/user.constants';
 import { StoryReviewDetails } from './story-review.types';
+import { StoryReview } from './story-review.entity';
+import { StoryRating } from '../story.types';
+import { GetLibraryStoriesDto } from '../story.dto';
 
 @Controller('story-reviews')
 export class StoryReviewController {
@@ -28,6 +31,87 @@ export class StoryReviewController {
     private userService: UserService,
     private storyService: StoryService
   ) {}
+
+  @Get('featured')
+  async getFeaturedStoriesReviews() {
+    let reviews: StoryReview[] = []
+    let reviewsDetails: StoryReviewDetails[] = []
+    let ratings: StoryRating[] = []
+    const featuredStories = await this.storyService.find({
+      featured: true
+    })
+
+    for (const featuredStory of featuredStories) {
+      const [ratingCount, featuredReview] = await Promise.all([
+        this.storyReviewService.getStoryRatingCount(featuredStory.id),
+        this.storyReviewService.findOneBy({
+          storyId: featuredStory.id
+        })
+      ])
+
+      ratings = [
+        ...ratings,
+        {
+          storyId: featuredStory.id,
+          ratingCount
+        }
+      ]
+
+      if (featuredReview === null) {
+        continue
+      }
+
+      const featuredReviewUser = await this.userService.findOneBy({
+        id: featuredReview.userId
+      })
+
+      if (featuredReviewUser === null) {
+        continue
+      }
+
+      reviews = [
+        ...reviews,
+        {
+          ...featuredReview,
+
+        }
+      ]
+      reviewsDetails = [
+        ...reviewsDetails,
+        {
+          storyReviewId: featuredReview.id,
+          userName: featuredReviewUser.name,
+          storyName: featuredStory.name,
+          storySlug: featuredStory.slug
+        }
+      ]
+    }
+
+    return {
+      reviews,
+      reviewsDetails,
+      ratings
+    }
+  }
+
+  @Get('library')
+  async getLibraryStoriesRatings(@Query() dto: GetLibraryStoriesDto) {
+    const libraryStories = await this.storyService.getLibraryStories(dto)
+    let ratings: StoryRating[] = []
+
+    for (const story of libraryStories.stories) {
+      const ratingCount = await this.storyReviewService.getStoryRatingCount(story.id)
+      ratings = [
+        ...ratings,
+        {
+          storyId: story.id,
+          ratingCount
+        }
+      ]
+    }
+
+    return ratings
+  }
 
   @Get('story/:id')
   async getReviewsByStoryId(@Param('id') id: string) {
@@ -63,21 +147,21 @@ export class StoryReviewController {
     }
   }
 
-  @Get(':id')
-  async getStoryReviewById(@Param('id') id: string) {
+  @Get(':storyId')
+  async getReviewByStoryId(@Param('storyId') storyId: string) {
     const [story, storyReview] = await Promise.all([
       this.storyService.findOneByOrFail({
-        id: parseInt(id)
+        id: parseInt(storyId)
       }),
       this.storyReviewService.findOneByOrFail({
-        storyId: parseInt(id)
+        storyId: parseInt(storyId)
       })
     ])
     const user = await this.userService.findOneByOrFail({
       id: storyReview.userId
     })
     const details: StoryReviewDetails = {
-      storyReviewId: storyReview?.id,
+      storyReviewId: storyReview.id,
       userName: user.name,
       storyName: story.name,
       storySlug: story.slug
@@ -91,7 +175,7 @@ export class StoryReviewController {
 
   @Post(':storyId')
   @UseGuards(JwtAuthGuard)
-  async createStoryReview(
+  async createReview(
     @CurrentUser() currentUser: CurrentUserType,
     @Param('storyId') storyId: string,
     @Body() dto: CreateStoryReviewDto
@@ -115,10 +199,10 @@ export class StoryReviewController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  async editStoryReview(
+  async editReview(
     @CurrentUser() currentUser: CurrentUserType,
     @Param('id') id: string,
-    @Body() dto: EditStoryReviewDto,
+    @Body() dto: EditStoryReviewDto
   ) {
     const storyReview = await this.storyReviewService.findOneByOrFail({
       id: parseInt(id)
@@ -144,18 +228,17 @@ export class StoryReviewController {
     }
   }
 
-  @Delete(':id')
+  @Delete(':storyId')
   @UseGuards(JwtAuthGuard)
-  async deleteStoryReview(
+  async deleteReviewByStoryId(
     @CurrentUser() currentUser: CurrentUserType,
-    @Param('id') id: string,
+    @Param('storyId') id: string
   ) {
-    const [user, storyReview] = await Promise.all([
-      this.userService.findOneByOrFail({ id: currentUser.id }),
-      this.storyReviewService.findOneByOrFail({ id: parseInt(id) })
-    ])
+    const storyReview = await this.storyReviewService.findOneByOrFail({
+      id: parseInt(id)
+    })
 
-    if (user.role !== UserRole.Admin && storyReview.userId !== currentUser.id) {
+    if (storyReview.userId !== currentUser.id) {
       throw new UnauthorizedException({
         message: `You don't have permission to delete this review`
       })

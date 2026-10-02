@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies'
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -10,7 +9,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProThemeModule } from './modules/pro-theme/pro-theme.module';
 import { ProFontModule } from './modules/pro-font/pro-font.module';
 import { StoryModule } from './modules/story/story.module';
-import { StoryContentModule } from './modules/story/story-content/story-content.module';
 import { StoryReviewModule } from './modules/story/story-review/story-review.module';
 
 @Module({
@@ -25,8 +23,7 @@ import { StoryReviewModule } from './modules/story/story-review/story-review.mod
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         migrationsRun: false,
-        synchronize: false,
-        namingStrategy: new SnakeNamingStrategy()
+        synchronize: true
       })
     }),
     UserModule,
@@ -34,7 +31,6 @@ import { StoryReviewModule } from './modules/story/story-review/story-review.mod
     ProThemeModule,
     ProFontModule,
     StoryModule,
-    StoryContentModule,
     StoryReviewModule
   ],
   controllers: [AppController],

@@ -20,13 +20,28 @@ export class Story {
   @Column()
   description: string
 
-  @Column('text', { array: true, default: [] })
+  @Column('text', {
+    array: true,
+    default: []
+  })
+  content: string[]
+
+  @Column('text',{
+    array: true,
+    default: []
+  })
   about: string[]
 
-  @Column('text', { array: true, default: [] })
+  @Column('text', {
+    array: true,
+    default: []
+  })
   preview: string[]
 
-  @Column('text', { array: true, default: [] })
+  @Column('text', {
+    array: true,
+    default: []
+  })
   genre: string[]
 
   // Add default cover image
@@ -39,7 +54,11 @@ export class Story {
   @Column({ default: 0 })
   downloads: number
 
-  @Column({ type: 'enum', enum: UserPlan, default: UserPlan.Free })
+  @Column({
+    type: 'enum',
+    enum: UserPlan,
+    default: UserPlan.Free
+  })
   plan: UserPlan
 
   @Column({ default: false })
