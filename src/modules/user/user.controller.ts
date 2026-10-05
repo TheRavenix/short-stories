@@ -50,7 +50,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async editName(
     @CurrentUser() currentUser: CurrentUserType,
-    @Body() dto: EditNameDto,
+    @Body() dto: EditNameDto
   ) {
     const user = await this.userService.findOneByOrFail({
       id: currentUser.id
@@ -79,7 +79,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async editEmail(
     @Body() dto: EditEmailDto,
-    @CurrentUser() currentUser: CurrentUserType,
+    @CurrentUser() currentUser: CurrentUserType
   ) {
     const user = await this.userService.findOneByOrFail({
       id: currentUser.id
@@ -123,7 +123,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async changePassword(
     @Body() dto: ChangePasswordDto,
-    @CurrentUser() currentUser: CurrentUserType,
+    @CurrentUser() currentUser: CurrentUserType
   ) {
     const user = await this.userService.findOneByOrFail({
       id: currentUser.id
@@ -157,9 +157,9 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async deleteUser(
     @Param('id') id: string,
-    @CurrentUser() currentUser: CurrentUserType,
+    @CurrentUser() currentUser: CurrentUserType
   ) {
-    if (parseInt(id) !== currentUser.id) {
+    if (Number(id) !== currentUser.id) {
       throw new UnauthorizedException({
         message: 'You are not allowed to delete this account'
       })

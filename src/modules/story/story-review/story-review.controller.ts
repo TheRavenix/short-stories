@@ -113,13 +113,13 @@ export class StoryReviewController {
 
   @Get('story/:id')
   async getReviewsByStoryId(@Param('id') id: string) {
-    let details: StoryReviewDetails[] = []
+    let reviewsDetails: StoryReviewDetails[] = []
     const [story, storyReviews] = await Promise.all([
       this.storyService.findOneByOrFail({
-        id: parseInt(id)
+        id: Number(id)
       }),
       this.storyReviewService.find({
-        storyId: parseInt(id)
+        storyId: Number(id)
       })
     ])
 
@@ -128,8 +128,8 @@ export class StoryReviewController {
         id: storyReview.userId
       })
 
-      details = [
-        ...details,
+      reviewsDetails = [
+        ...reviewsDetails,
         {
           storyReviewId: storyReview.id,
           userName: user.name,
@@ -141,7 +141,7 @@ export class StoryReviewController {
 
     return {
       reviews: storyReviews,
-      details,
+      reviewsDetails,
       ratingCount: this.storyReviewService.getRatingCount(storyReviews)
     }
   }
@@ -150,10 +150,10 @@ export class StoryReviewController {
   async getReviewByStoryId(@Param('storyId') storyId: string) {
     const [story, storyReview] = await Promise.all([
       this.storyService.findOneByOrFail({
-        id: parseInt(storyId)
+        id: Number(storyId)
       }),
       this.storyReviewService.findOneByOrFail({
-        storyId: parseInt(storyId)
+        storyId: Number(storyId)
       })
     ])
     const user = await this.userService.findOneByOrFail({
@@ -181,7 +181,7 @@ export class StoryReviewController {
   ) {
     const storyReview = await this.storyReviewService.findOneBy({
       userId: currentUser.id,
-      storyId: parseInt(storyId)
+      storyId: Number(storyId)
     })
 
     if (storyReview !== null) {
@@ -190,7 +190,7 @@ export class StoryReviewController {
       })
     }
 
-    await this.storyReviewService.create(dto, currentUser.id, parseInt(storyId))
+    await this.storyReviewService.create(dto, currentUser.id, Number(storyId))
     return {
       message: 'Your review have been posted successfully'
     }
@@ -204,7 +204,7 @@ export class StoryReviewController {
     @Body() dto: EditStoryReviewDto
   ) {
     const storyReview = await this.storyReviewService.findOneByOrFail({
-      id: parseInt(id)
+      id: Number(id)
     })
 
     if (storyReview.userId !== currentUser.id) {
@@ -221,7 +221,7 @@ export class StoryReviewController {
       }
     }
 
-    await this.storyReviewService.update({ id: parseInt(id) }, dto)
+    await this.storyReviewService.update({ id: Number(id) }, dto)
     return {
       message: 'Your review have been edited successfully'
     }
@@ -234,7 +234,7 @@ export class StoryReviewController {
     @Param('storyId') id: string
   ) {
     const storyReview = await this.storyReviewService.findOneByOrFail({
-      id: parseInt(id)
+      id: Number(id)
     })
 
     if (storyReview.userId !== currentUser.id) {
@@ -244,7 +244,7 @@ export class StoryReviewController {
     }
 
     await this.storyReviewService.delete({
-      id: parseInt(id)
+      id: Number(id)
     })
     return {
       message: 'Story review have been deleted successfully'

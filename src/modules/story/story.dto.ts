@@ -14,11 +14,20 @@ import { StoryGenre } from './story.constants';
 import { UserPlan } from '../user/user.constants';
 
 export class CreateStoryDto {
-  @Length(1, undefined, { message: 'Story name is too short' })
+  @Length(1, undefined, {
+    message: 'Story name is too short'
+  })
   name: string
 
-  @Length(1, undefined, { message: 'Story description is too short' })
+  @Length(1, undefined, {
+    message: 'Story description is too short'
+  })
   description: string
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  content?: string[]
 
   @IsOptional()
   @IsArray()
@@ -36,17 +45,16 @@ export class CreateStoryDto {
   })
   genre: StoryGenre[]
 
-  @IsString({ message: 'Please provide a cover image' })
+  @IsString({
+    message: 'Please provide a cover image'
+  })
   coverImage: string
 
   @IsOptional()
-  @IsEnum(UserPlan, { message: 'Invalid plan' })
+  @IsEnum(UserPlan, {
+    message: 'Invalid plan'
+  })
   plan?: UserPlan
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  content?: string[]
 
   @IsOptional()
   @IsBoolean()
@@ -55,12 +63,21 @@ export class CreateStoryDto {
 
 export class EditStoryDto {
   @IsOptional()
-  @Length(1, undefined, { message: 'Story name is too short' })
-  name: string
+  @Length(1, undefined, {
+    message: 'Story name is too short'
+  })
+  name?: string
 
   @IsOptional()
-  @Length(1, undefined, { message: 'Story description is too short' })
-  description: string
+  @Length(1, undefined, {
+    message: 'Story description is too short'
+  })
+  description?: string
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  content?: string[]
 
   @IsOptional()
   @IsArray()
@@ -75,44 +92,44 @@ export class EditStoryDto {
   @IsOptional()
   @IsEnum(StoryGenre, {
     each: true,
-    message: 'Please provide a valid story genre',
+    message: 'Please provide a valid story genre'
   })
-  genre: StoryGenre[]
+  genre?: StoryGenre[]
 
   @IsOptional()
-  @IsString({ message: 'Please provide a cover image' })
-  coverImage: string
+  @IsString({
+    message: 'Please provide a cover image'
+  })
+  coverImage?: string
 
   @IsOptional()
-  @IsEnum(UserPlan, { message: 'Invalid plan' })
+  @IsEnum(UserPlan, {
+    message: 'Invalid plan'
+  })
   plan?: UserPlan
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  content?: string[]
 }
 
 export class GetLibraryStoriesDto {
-  @IsOptional()
   @Transform(({ value }) => (value !== undefined ? Number(value) : value))
   @IsNumber()
   @Min(0)
   skip?: number
 
-  @IsOptional()
   @Transform(({ value }) => (value !== undefined ? Number(value) : value))
   @IsNumber()
   @Min(0)
   limit?: number
 
-  @IsOptional()
   @IsString()
-  q: string
+  q?: string
 
-  @IsOptional()
-  plan?: UserPlan | string
+  @IsString({
+    message: 'Plan must be a string'
+  })
+  plan?: UserPlan
 
-  @IsOptional()
-  genre?: StoryGenre | string
+  @IsString({
+    message: 'Genre must be a string'
+  })
+  genre?: StoryGenre
 }
