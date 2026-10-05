@@ -32,7 +32,17 @@ export class StoryReviewService {
     return review
   }
 
-  async getStoryRatingCount(storyId: number) {
+  // Isn't this should be handeled in the client?
+  getRatingCount(storyReviews: StoryReview[]) {
+    return (
+      storyReviews.reduce((a, b) => {
+        return a + b.stars
+      }, 0) / storyReviews.length || 0
+    )
+  }
+
+  // Isn't this should be handeled in the client?
+  async getRatingCountByStoryId(storyId: number) {
     const storyReviews = await this.storyReviewRepository.find({
       where: {
         storyId
@@ -41,11 +51,7 @@ export class StoryReviewService {
         stars: true
       }
     })
-    return (
-      storyReviews.reduce((a, b) => {
-        return a + b.stars
-      }, 0) / storyReviews.length || 0
-    )
+    return this.getRatingCount(storyReviews)
   }
 
   create(dto: CreateStoryReviewDto, userId: number, storyId: number) {

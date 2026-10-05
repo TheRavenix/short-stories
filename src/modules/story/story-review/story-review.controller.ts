@@ -19,9 +19,8 @@ import { CurrentUserType } from '../../user/user.types';
 import { CreateStoryReviewDto, EditStoryReviewDto } from './story-review.dto';
 import { UserService } from '../../user/user.service';
 import { StoryService } from '../story.service';
-import { StoryReviewDetails } from './story-review.types';
+import { StoryReviewDetails, StoryReviewsRating } from './story-review.types';
 import { StoryReview } from './story-review.entity';
-import { StoryRating } from '../story.types';
 import { GetLibraryStoriesDto } from '../story.dto';
 
 @Controller('story-reviews')
@@ -36,21 +35,21 @@ export class StoryReviewController {
   async getFeaturedStoriesReviews() {
     let reviews: StoryReview[] = []
     let reviewsDetails: StoryReviewDetails[] = []
-    let ratings: StoryRating[] = []
+    let reviewsRatings: StoryReviewsRating[] = []
     const featuredStories = await this.storyService.find({
       featured: true
     })
 
     for (const featuredStory of featuredStories) {
       const [ratingCount, featuredReview] = await Promise.all([
-        this.storyReviewService.getStoryRatingCount(featuredStory.id),
+        this.storyReviewService.getRatingCountByStoryId(featuredStory.id),
         this.storyReviewService.findOneBy({
           storyId: featuredStory.id
         })
       ])
 
-      ratings = [
-        ...ratings,
+      reviewsRatings = [
+        ...reviewsRatings,
         {
           storyId: featuredStory.id,
           ratingCount
@@ -72,8 +71,7 @@ export class StoryReviewController {
       reviews = [
         ...reviews,
         {
-          ...featuredReview,
-
+          ...featuredReview
         }
       ]
       reviewsDetails = [
@@ -90,19 +88,19 @@ export class StoryReviewController {
     return {
       reviews,
       reviewsDetails,
-      ratings
+      reviewsRatings
     }
   }
 
   @Get('library')
   async getLibraryStoriesRatings(@Query() dto: GetLibraryStoriesDto) {
     const libraryStories = await this.storyService.getLibraryStories(dto)
-    let ratings: StoryRating[] = []
+    let reviewsRatings: StoryReviewsRating[] = []
 
     for (const story of libraryStories.stories) {
-      const ratingCount = await this.storyReviewService.getStoryRatingCount(story.id)
-      ratings = [
-        ...ratings,
+      const ratingCount = await this.storyReviewService.getRatingCountByStoryId(story.id)
+      reviewsRatings = [
+        ...reviewsRatings,
         {
           storyId: story.id,
           ratingCount
@@ -110,7 +108,7 @@ export class StoryReviewController {
       ]
     }
 
-    return ratings
+    return reviewsRatings
   }
 
   @Get('story/:id')
@@ -143,7 +141,8 @@ export class StoryReviewController {
 
     return {
       reviews: storyReviews,
-      details
+      details,
+      ratingCount: this.storyReviewService.getRatingCount(storyReviews)
     }
   }
 

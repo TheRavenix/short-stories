@@ -26,7 +26,7 @@ export class AuthController {
   @Post('sign-up')
   async signUp(
     @Body() dto: SignUpDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response
   ) {
     const user = await this.userService.findOneBy({
       email: dto.email.toLowerCase()
@@ -39,15 +39,15 @@ export class AuthController {
     }
 
     const createdUser = await this.userService.create(dto)
-    return {
+    res.json({
       message: `Welcome ${createdUser.name}`
-    }
+    })
   }
 
   @Post('sign-in')
   async signIn(
     @Body() dto: SignInDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res({ passthrough: true }) res: Response
   ) {
     const user = await this.userService.findOneWithPassword(
       {

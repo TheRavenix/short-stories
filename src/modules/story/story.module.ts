@@ -13,10 +13,7 @@ import { UserAdminGuard } from 'src/common/guards/user-admin.guard';
   controllers: [StoryController],
   providers: [
     StoryService,
-    {
-      provide: APP_GUARD,
-      useClass: UserAdminGuard
-    }
+    UserAdminGuard
   ],
   exports: [StoryService]
 })
