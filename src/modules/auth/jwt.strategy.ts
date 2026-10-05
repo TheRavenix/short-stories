@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   validate(payload: { sub: string }) {
     return {
-      id: payload.sub
+      id: Number(payload.sub)
     }
   }
 }

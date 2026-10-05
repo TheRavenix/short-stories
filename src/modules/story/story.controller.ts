@@ -54,7 +54,7 @@ export class StoryController {
   @UseGuards(JwtAuthGuard, UserAdminGuard)
   async createStory(
     @CurrentUser() currentUser: CurrentUserType,
-    @Body() dto: CreateStoryDto
+    @Body() dto: CreateStoryDto,
   ) {
     const story = await this.storyService.create(dto, currentUser.id)
     return {
@@ -65,9 +65,9 @@ export class StoryController {
   @Post('read/:id')
   @UseGuards(JwtAuthGuard)
   async readStory(@Param('id') id: string) {
-    const story = await this.storyService.findOneByOrFail({ id: parseInt(id) })
+    const story = await this.storyService.findOneByOrFail({ id: Number(id) })
     await this.storyService.update(
-      { id: parseInt(id) },
+      { id: Number(id) },
       {
         views: story.views + 1
       }
@@ -78,7 +78,7 @@ export class StoryController {
   @UseGuards(JwtAuthGuard)
   async downloadStory(@Param('id') id: string, @Res() res: Response) {
     const story = await this.storyService.findOneByOrFail({
-      id: parseInt(id)
+      id: Number(id),
     })
     const doc = new jsPDF()
 
@@ -88,7 +88,7 @@ export class StoryController {
 
     await this.storyService.update(
       {
-        id: parseInt(id),
+        id: Number(id),
       },
       {
         downloads: story.downloads + 1
@@ -97,7 +97,7 @@ export class StoryController {
 
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename=${story.name}.pdf`,
+      'Content-Disposition': `attachment filename=${story.name}.pdf`,
       'Content-Length': pdfBuffer.length
     })
     res.end(pdfBuffer)
@@ -106,15 +106,15 @@ export class StoryController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, UserAdminGuard)
   async editStory(@Param('id') id: string, @Body() dto: EditStoryDto) {
-    const slug = slugify(dto.name)
+    const slug = dto.name !== undefined ? slugify(dto.name) : undefined
     await this.storyService.update(
-      { 
-        id: parseInt(id)
+      {
+        id: Number(id),
       },
       {
         ...dto,
-        slug
-      }
+        slug,
+      },
     )
     return {
       message: 'Story have been edited successfully',
@@ -129,17 +129,17 @@ export class StoryController {
     @Param('id') id: string,
   ) {
     const story = await this.storyService.findOneByOrFail({
-      id: parseInt(id),
-      userId: currentUser.id
+      id: Number(id),
+      userId: currentUser.id,
     })
 
-    if (story.userId !== parseInt(id)) {
+    if (story.userId !== Number(id)) {
       throw new UnauthorizedException({
         message: 'You do not have permission to delete this story'
       })
     }
 
-    await this.storyService.delete({ id: parseInt(id) })
+    await this.storyService.delete({ id: Number(id) })
     return {
       message: 'Story have been deleted successfully'
     }
