@@ -4,3 +4,8 @@ export type StoryReviewDetails = {
   storyName: string
   storySlug: string
 }
+
+export type StoryReviewsRating = {
+  storyId: number
+  ratingCount: number
+}
