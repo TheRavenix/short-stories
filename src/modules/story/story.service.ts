@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { ArrayContains, FindOptionsWhere, ILike, Repository } from 'typeorm';
 
 import { Story } from './story.entity';
 import { CreateStoryDto, GetLibraryStoriesDto } from './story.dto';
@@ -43,7 +43,7 @@ export class StoryService {
   }
 
   async findPaginated(
-    where: FindOptionsWhere<Story> = {},
+    where: FindOptionsWhere<Story> | FindOptionsWhere<Story>[] = {},
     skip = 0,
     take = PAGINATION_LIMIT
   ) {
@@ -78,7 +78,7 @@ export class StoryService {
       {
         name: ILike(`%${dto.q ?? ''}%`),
         plan,
-        genre
+        genre: genre !== undefined ? ArrayContains([genre]) : undefined
       },
       dto.skip,
       dto.limit
