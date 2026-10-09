@@ -7,11 +7,11 @@ import {
   IsString,
   Length,
   Min,
-} from 'class-validator';
-import { Transform } from 'class-transformer';
+} from 'class-validator'
+import { Transform } from 'class-transformer'
 
-import { StoryGenre } from './story.constants';
-import { UserPlan } from '../user/user.constants';
+import { StoryGenre } from './story.constants'
+import { UserPlan } from '../user/user.constants'
 
 export class CreateStoryDto {
   @Length(1, undefined, {

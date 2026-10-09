@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, Length } from 'class-validator';
+import { IsEmail, IsOptional, Length } from 'class-validator'
 
 export class AuthCredentialsDto {
   @IsEmail(undefined, { message: 'Please provide a valid email address' })

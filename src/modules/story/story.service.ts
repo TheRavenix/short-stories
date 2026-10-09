@@ -1,17 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ArrayContains, FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { ArrayContains, FindOptionsWhere, ILike, Repository } from 'typeorm'
 
-import { Story } from './story.entity';
-import { CreateStoryDto, GetLibraryStoriesDto } from './story.dto';
+import { Story } from './story.entity'
+import { CreateStoryDto, GetLibraryStoriesDto } from './story.dto'
 import {
   ALL_GENRES,
   ALL_PLANS,
   PAGINATION_LIMIT,
-} from 'src/common/constants/filters.constant';
-import { slugify } from 'src/utils/slugify';
-import { UserPlan } from '../user/user.constants';
-import { StoryGenre } from './story.constants';
+} from 'src/common/constants/filters.constant'
+import { slugify } from 'src/utils/slugify'
+import { UserPlan } from '../user/user.constants'
+import { StoryGenre } from './story.constants'
 
 @Injectable()
 export class StoryService {

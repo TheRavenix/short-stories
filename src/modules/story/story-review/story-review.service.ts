@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindOptionsWhere, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { FindOptionsWhere, Repository } from 'typeorm'
+import { InjectRepository } from '@nestjs/typeorm'
 
-import { StoryReview } from './story-review.entity';
-import { CreateStoryReviewDto } from './story-review.dto';
+import { StoryReview } from './story-review.entity'
+import { CreateStoryReviewDto } from './story-review.dto'
 
 @Injectable()
 export class StoryReviewService {

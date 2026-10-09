@@ -1,6 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { BadRequestException, Injectable } from '@nestjs/common'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
 @Injectable()
 export class ProThemeService {

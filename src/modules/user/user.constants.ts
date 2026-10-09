@@ -1,9 +1,9 @@
 export enum UserPlan {
   Free = 'free',
-  Pro = 'pro',
+  Pro = 'pro'
 }
 
 export enum UserRole {
   User = 'user',
-  Admin = 'admin',
+  Admin = 'admin'
 }
