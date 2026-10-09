@@ -1,6 +1,6 @@
-import { IsEmail, IsOptional, Length } from 'class-validator';
+import { IsEmail, IsOptional, Length } from 'class-validator'
 
-import { AuthCredentialsDto } from '../auth/auth.dto';
+import { AuthCredentialsDto } from '../auth/auth.dto'
 
 export class CreateUserDto extends AuthCredentialsDto {
   @IsOptional()

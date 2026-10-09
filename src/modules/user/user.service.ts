@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsSelect, FindOptionsWhere, Repository } from 'typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { FindOptionsSelect, FindOptionsWhere, Repository } from 'typeorm'
 
-import { User } from './user.entity';
-import { CreateUserDto } from './user.dto';
-import { HashService } from '../common/hash/hash.service';
-import { capitalize } from 'src/utils/capitalize';
+import { User } from './user.entity'
+import { CreateUserDto } from './user.dto'
+import { HashService } from '../common/hash/hash.service'
+import { capitalize } from 'src/utils/capitalize'
 
 @Injectable()
 export class UserService {

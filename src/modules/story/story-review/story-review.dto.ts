@@ -4,7 +4,7 @@ import {
   Length,
   Max,
   Min,
-} from 'class-validator';
+} from 'class-validator'
 
 export class CreateStoryReviewDto {
   @IsNumber()

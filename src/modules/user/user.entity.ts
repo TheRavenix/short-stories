@@ -1,7 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Exclude } from 'class-transformer';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Exclude } from 'class-transformer'
 
-import { UserPlan, UserRole } from './user.constants';
+import { UserPlan, UserRole } from './user.constants'
 
 @Entity('users')
 export class User {

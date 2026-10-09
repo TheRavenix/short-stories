@@ -1,6 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm'
 
-import { UserPlan } from '../user/user.constants';
+import { UserPlan } from '../user/user.constants'
 
 @Entity('stories')
 @Unique(['name', 'slug'])

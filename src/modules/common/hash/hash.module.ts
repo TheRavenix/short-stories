@@ -1,15 +1,15 @@
-import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common'
 
-import { HashService } from './hash.service';
-import { BcryptStrategy } from './bcrypt.strategy';
+import { HashService } from './hash.service'
+import { BcryptStrategy } from './bcrypt.strategy'
 
 @Module({
   providers: [
     {
       provide: 'HashStrategy',
-      useClass: BcryptStrategy,
+      useClass: BcryptStrategy
     },
-    HashService,
+    HashService
   ],
   exports: [HashService]
 })

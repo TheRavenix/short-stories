@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { CookieOptions } from 'express';
-import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
+import { CookieOptions } from 'express'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class AuthService {

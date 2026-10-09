@@ -10,21 +10,21 @@ import {
   Res,
   UnauthorizedException,
   UseGuards,
-} from '@nestjs/common';
-import jsPDF from 'jspdf';
-import { Response } from 'express';
+} from '@nestjs/common'
+import jsPDF from 'jspdf'
+import { Response } from 'express'
 
 import {
   CreateStoryDto,
   EditStoryDto,
   GetLibraryStoriesDto,
-} from './story.dto';
-import { StoryService } from './story.service';
-import { CurrentUserType } from '../user/user.types';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { CurrentUser } from '../user/decorators/current-user.decorator';
-import { UserAdminGuard } from 'src/common/guards/user-admin.guard';
-import { slugify } from 'src/utils/slugify';
+} from './story.dto'
+import { StoryService } from './story.service'
+import { CurrentUserType } from '../user/user.types'
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard'
+import { CurrentUser } from '../user/decorators/current-user.decorator'
+import { UserAdminGuard } from 'src/common/guards/user-admin.guard'
+import { slugify } from 'src/utils/slugify'
 
 @Controller('stories')
 export class StoryController {
