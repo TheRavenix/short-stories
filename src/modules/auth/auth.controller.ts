@@ -26,7 +26,9 @@ export class AuthController {
   @Post('sign-up')
   async signUp(
     @Body() dto: SignUpDto,
-    @Res({ passthrough: true }) res: Response
+    @Res({
+      passthrough: true 
+    }) res: Response
   ) {
     const user = await this.userService.findOneBy({
       email: dto.email.toLowerCase()
@@ -47,7 +49,9 @@ export class AuthController {
   @Post('sign-in')
   async signIn(
     @Body() dto: SignInDto,
-    @Res({ passthrough: true }) res: Response
+    @Res({ 
+      passthrough: true 
+    }) res: Response
   ) {
     const user = await this.userService.findOneWithPassword(
       {
@@ -68,19 +72,24 @@ export class AuthController {
       })
     }
 
-    const authToken = await this.authService.generateAuthToken(
+    const authToken = await this.authService.signAuthToken(
       user.id.toString()
     )
     res.cookie('token', authToken, this.authService.getTokenCookieOptions())
     res.json({
       message: `Welcome Back ${user.name}`,
+      // This should be removed
       token: authToken
     })
   }
 
   @Post('sign-out')
   @UseGuards(JwtAuthGuard)
-  signOut(@Res({ passthrough: true }) res: Response) {
+  signOut(
+    @Res({
+      passthrough: true 
+    }) res: Response
+  ) {
     res.clearCookie('token')
     res.json({
       message: 'Signed out successfully'

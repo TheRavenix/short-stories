@@ -26,17 +26,23 @@ export class CreateStoryDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsString({ 
+    each: true 
+  })
   content?: string[]
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsString({ 
+    each: true 
+  })
   about?: string[]
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsString({ 
+    each: true 
+  })
   preview?: string[]
 
   @IsEnum(StoryGenre, {
@@ -76,17 +82,23 @@ export class EditStoryDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsString({
+    each: true 
+  })
   content?: string[]
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsString({ 
+    each: true 
+  })
   about?: string[]
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @IsString({ 
+    each: true 
+  })
   preview?: string[]
 
   @IsOptional()
@@ -137,4 +149,8 @@ export class GetLibraryStoriesDto {
     message: 'Genre must be a string'
   })
   genre?: StoryGenre
+
+  @IsOptional()
+  @IsString()
+  order?: string
 }

@@ -10,7 +10,7 @@ export class AuthService {
     private configService: ConfigService
   ) {}
 
-  async generateAuthToken(id: string) {
+  async signAuthToken(id: string) {
     const authToken = await this.jwtService.signAsync({
       sub: id
     })

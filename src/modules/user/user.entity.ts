@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  Column,
+  CreateDateColumn,
+  Entity, 
+  PrimaryGeneratedColumn, 
+  UpdateDateColumn 
+} from 'typeorm'
 import { Exclude } from 'class-transformer'
 
 import { UserPlan, UserRole } from './user.constants'
@@ -8,14 +14,22 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column({ nullable: true })
+  @Column({ 
+    nullable: true 
+  })
   name: string
 
-  @Column({ unique: true })
+  @Column({ 
+    unique: true 
+  })
   email: string
 
-  @Exclude({ toPlainOnly: true })
-  @Column({ select: false })
+  @Exclude({ 
+    toPlainOnly: true 
+  })
+  @Column({ 
+    select: false 
+  })
   password: string
 
   @Column({
@@ -31,4 +45,14 @@ export class User {
     default: UserRole.User,
   })
   role: UserRole
+
+  @CreateDateColumn({
+    name: 'created_at'
+  })
+  createdAt: Date
+
+  @UpdateDateColumn({
+    name: 'updated_at'
+  })
+  updatedAt: Date
 }

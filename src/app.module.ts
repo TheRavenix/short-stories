@@ -23,7 +23,7 @@ import { StoryReviewModule } from './modules/story/story-review/story-review.mod
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         migrationsRun: false,
-        synchronize: false,
+        synchronize: true,
         invalidWhereValuesBehavior: {
           undefined: 'ignore'
         }

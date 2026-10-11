@@ -32,17 +32,20 @@ export class StoryReviewController {
   ) {}
 
   @Get('featured')
-  async getFeaturedStoriesReviews() {
+  async findFeaturedStoriesReviews() {
     let reviews: StoryReview[] = []
     let reviewsDetails: StoryReviewDetails[] = []
+    // Story already has a 'rating' field
     let reviewsRatings: StoryReviewsRating[] = []
     const featuredStories = await this.storyService.find({
-      featured: true
+      where: {
+        featured: true
+      }
     })
 
     for (const featuredStory of featuredStories) {
       const [ratingCount, featuredReview] = await Promise.all([
-        this.storyReviewService.getRatingCountByStoryId(featuredStory.id),
+        this.storyReviewService.findRatingCountByStoryId(featuredStory.id),
         this.storyReviewService.findOneBy({
           storyId: featuredStory.id
         })
@@ -93,12 +96,13 @@ export class StoryReviewController {
   }
 
   @Get('library')
-  async getLibraryStoriesRatings(@Query() dto: GetLibraryStoriesDto) {
-    const libraryStories = await this.storyService.getLibraryStories(dto)
+  async findLibraryStoriesRatings(@Query() dto: GetLibraryStoriesDto) {
+    const libraryStories = await this.storyService.findLibraryStories(dto)
+    // Story already has a 'rating' field
     let reviewsRatings: StoryReviewsRating[] = []
 
     for (const story of libraryStories.stories) {
-      const ratingCount = await this.storyReviewService.getRatingCountByStoryId(story.id)
+      const ratingCount = await this.storyReviewService.findRatingCountByStoryId(story.id)
       reviewsRatings = [
         ...reviewsRatings,
         {
@@ -112,14 +116,16 @@ export class StoryReviewController {
   }
 
   @Get('story/:id')
-  async getReviewsByStoryId(@Param('id') id: string) {
+  async findReviewsByStoryId(@Param('id') id: string) {
     let reviewsDetails: StoryReviewDetails[] = []
     const [story, storyReviews] = await Promise.all([
       this.storyService.findOneByOrFail({
         id: Number(id)
       }),
       this.storyReviewService.find({
-        storyId: Number(id)
+        where: {
+          storyId: Number(id)
+        }
       })
     ])
 
@@ -142,12 +148,14 @@ export class StoryReviewController {
     return {
       reviews: storyReviews,
       reviewsDetails,
-      ratingCount: this.storyReviewService.getRatingCount(storyReviews)
+      ratingCount: this.storyReviewService.getRatingCount(
+        storyReviews.map(review => review.stars)
+      )
     }
   }
 
   @Get(':storyId')
-  async getReviewByStoryId(@Param('storyId') storyId: string) {
+  async findReviewByStoryId(@Param('storyId') storyId: string) {
     const [story, storyReview] = await Promise.all([
       this.storyService.findOneByOrFail({
         id: Number(storyId)
@@ -191,6 +199,23 @@ export class StoryReviewController {
     }
 
     await this.storyReviewService.create(dto, currentUser.id, Number(storyId))
+
+    const storyReviews = await this.storyReviewService.find({
+      where: {
+        storyId: Number(storyId)
+      },
+      select: {
+        stars: true
+      }
+    })
+
+    await this.storyService.update({
+      id: Number(storyId)
+    }, {
+      rating: this.storyReviewService.getRatingCount(
+        storyReviews.map((review) => review.stars)
+      )
+    })
     return {
       message: 'Your review have been posted successfully'
     }
@@ -217,11 +242,30 @@ export class StoryReviewController {
       storyReview.comment === dto.comment
     ) {
       return {
-        message: 'Your review have been edited successfully',
+        message: 'Your review have been edited successfully'
       }
     }
 
-    await this.storyReviewService.update({ id: Number(id) }, dto)
+    await this.storyReviewService.update({
+      id: Number(id) 
+    }, dto)
+
+    const storyReviews = await this.storyReviewService.find({
+      where: {
+        storyId: storyReview.storyId
+      },
+      select: {
+        stars: true
+      }
+    })
+
+    await this.storyService.update({
+      id: storyReview.storyId
+    }, {
+      rating: this.storyReviewService.getRatingCount(
+        storyReviews.map((review) => review.stars)
+      )
+    })
     return {
       message: 'Your review have been edited successfully'
     }
