@@ -1,6 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { ArrayContains, FindOptionsWhere, ILike, Repository } from 'typeorm'
+import { 
+  ArrayContains,
+  FindManyOptions, 
+  FindOptionsOrder, 
+  FindOptionsWhere, 
+  ILike, 
+  Repository 
+} from 'typeorm'
 
 import { Story } from './story.entity'
 import { CreateStoryDto, GetLibraryStoriesDto } from './story.dto'
@@ -19,12 +26,12 @@ export class StoryService {
     @InjectRepository(Story) private storyRepository: Repository<Story>
   ) {}
 
-  find(where: FindOptionsWhere<Story> = {}) {
-    return this.storyRepository.find({ where })
+  find(options?: FindManyOptions<Story>) {
+    return this.storyRepository.find(options)
   }
 
-  async getStoryIdBySlug(slug: string) {
-    const story = await this.storyRepository.findOne({
+  findStoryIdBySlug(slug: string) {
+    return this.storyRepository.findOne({
       select: {
         id: true
       },
@@ -32,30 +39,12 @@ export class StoryService {
         slug
       }
     })
-
-    if (story === null) {
-      throw new NotFoundException({
-        message: 'Story not found'
-      })
-    }
-
-    return story
   }
 
-  async findPaginated(
-    where: FindOptionsWhere<Story> | FindOptionsWhere<Story>[] = {},
-    skip = 0,
-    take = PAGINATION_LIMIT
-  ) {
+  async findPaginated(options?: FindManyOptions<Story>) {
     const [stories, count] = await Promise.all([
-      this.storyRepository.find({
-        where,
-        skip,
-        take
-      }),
-      this.storyRepository.count({
-        where
-      })
+      this.storyRepository.find(options),
+      this.storyRepository.count(options)
     ])
     return {
       stories,
@@ -63,37 +52,70 @@ export class StoryService {
     }
   }
 
-  getLibraryStories(dto: GetLibraryStoriesDto) {
-    let plan: UserPlan | undefined
-    let genre: StoryGenre | undefined
+  findLibraryStories(dto: GetLibraryStoriesDto) {
+    let plan: UserPlan | undefined = dto.plan
+    let genre: StoryGenre | undefined = dto.genre
+    let order: string | undefined = dto.order
+    let orderOptions: FindOptionsOrder<Story> | undefined
 
-    if (dto.plan !== undefined && dto.plan.toLowerCase() !== ALL_PLANS) {
-      plan = dto.plan.toLowerCase() as UserPlan
+    if (plan !== undefined && (plan === ALL_PLANS as UserPlan)) {
+      plan = undefined
     }
-    if (dto.genre !== undefined && dto.genre.toLowerCase() !== ALL_GENRES) {
-      genre = dto.genre.toLowerCase() as StoryGenre
+    if (genre !== undefined && (genre === ALL_GENRES as StoryGenre)) {
+      genre = undefined
+    }
+
+    switch (order) {
+      case 'most-popular':
+        orderOptions = {
+          views: 'DESC'
+        }
+      break
+
+      case 'highest-rated':
+        orderOptions = {
+          rating: 'DESC'
+        }
+      break
+
+      case 'newest-first':
+        orderOptions = {
+          createdAt: 'DESC'
+        }
+      break
+
+      case 'oldest-first':
+        orderOptions = {
+          createdAt: 'ASC'
+        }
+      break
     }
 
     return this.findPaginated(
       {
-        name: ILike(`%${dto.q ?? ''}%`),
-        plan,
-        genre: genre !== undefined ? ArrayContains([genre]) : undefined
-      },
-      dto.skip,
-      dto.limit
+        where: {
+          name: ILike(`%${dto.q ?? ''}%`),
+          plan,
+          genre: genre !== undefined ? ArrayContains([genre]) : undefined
+        },
+        order: orderOptions,
+        skip: dto.skip || 0,
+        take: dto.limit || PAGINATION_LIMIT
+      }
     )
   }
 
-  findOneBy(where: FindOptionsWhere<Story> = {}) {
+  findOneBy(where: FindOptionsWhere<Story>) {
     return this.storyRepository.findOneBy(where)
   }
 
-  async findOneByOrFail(where: FindOptionsWhere<Story> = {}) {
+  async findOneByOrFail(where: FindOptionsWhere<Story>) {
     const user = await this.storyRepository.findOneBy(where)
 
     if (user === null) {
-      throw new NotFoundException('Story not found')
+      throw new NotFoundException({
+        message: 'Story not found'
+      })
     }
 
     return user
@@ -108,11 +130,11 @@ export class StoryService {
     return this.storyRepository.save(story)
   }
 
-  update(where: FindOptionsWhere<Story> = {}, update: Partial<Story> = {}) {
+  update(where: FindOptionsWhere<Story>, update: Partial<Story>) {
     return this.storyRepository.update(where, update)
   }
 
-  delete(where: FindOptionsWhere<Story> = {}) {
+  delete(where: FindOptionsWhere<Story>) {
     return this.storyRepository.delete(where)
   }
 }

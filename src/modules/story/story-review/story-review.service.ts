@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { FindOptionsWhere, Repository } from 'typeorm'
+import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 
 import { StoryReview } from './story-review.entity'
@@ -12,15 +12,15 @@ export class StoryReviewService {
     private storyReviewRepository: Repository<StoryReview>
   ) {}
 
-  find(where: FindOptionsWhere<StoryReview> = {}) {
-    return this.storyReviewRepository.find({ where })
+  find(options?: FindManyOptions<StoryReview>) {
+    return this.storyReviewRepository.find(options)
   }
 
-  findOneBy(where: FindOptionsWhere<StoryReview> = {}) {
+  findOneBy(where: FindOptionsWhere<StoryReview>) {
     return this.storyReviewRepository.findOneBy(where)
   }
 
-  async findOneByOrFail(where: FindOptionsWhere<StoryReview> = {}) {
+  async findOneByOrFail(where: FindOptionsWhere<StoryReview>) {
     const review = await this.storyReviewRepository.findOneBy(where)
 
     if (review === null) {
@@ -33,16 +33,16 @@ export class StoryReviewService {
   }
 
   // Isn't this should be handeled in the client?
-  getRatingCount(storyReviews: StoryReview[]) {
+  getRatingCount(stars: number[]) {
     return (
-      storyReviews.reduce((a, b) => {
-        return a + b.stars
-      }, 0) / storyReviews.length || 0
+      stars.reduce((a, b) => {
+        return a + b
+      }, 0) / stars.length || 0
     )
   }
 
   // Isn't this should be handeled in the client?
-  async getRatingCountByStoryId(storyId: number) {
+  async findRatingCountByStoryId(storyId: number) {
     const storyReviews = await this.storyReviewRepository.find({
       where: {
         storyId
@@ -51,26 +51,26 @@ export class StoryReviewService {
         stars: true
       }
     })
-    return this.getRatingCount(storyReviews)
+    return this.getRatingCount(storyReviews.map((review) => review.stars))
   }
 
   create(dto: CreateStoryReviewDto, userId: number, storyId: number) {
-    const story = this.storyReviewRepository.create({
+    const review = this.storyReviewRepository.create({
       ...dto,
       userId,
       storyId
     })
-    return this.storyReviewRepository.save(story)
+    return this.storyReviewRepository.save(review)
   }
 
   update(
-    where: FindOptionsWhere<StoryReview> = {},
-    update: Partial<StoryReview> = {},
+    where: FindOptionsWhere<StoryReview>,
+    update: Partial<StoryReview>
   ) {
     return this.storyReviewRepository.update(where, update)
   }
 
-  delete(where: FindOptionsWhere<StoryReview> = {}) {
+  delete(where: FindOptionsWhere<StoryReview>) {
     return this.storyReviewRepository.delete(where)
   }
 }

@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm'
+import { 
+  Column,
+  CreateDateColumn, 
+  Entity, 
+  PrimaryGeneratedColumn, 
+  Unique, 
+  UpdateDateColumn 
+} from 'typeorm'
 
 import { UserPlan } from '../user/user.constants'
 
@@ -8,7 +15,9 @@ export class Story {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column()
+  @Column({
+    name: 'user_id'
+  })
   userId: number
 
   @Column()
@@ -45,13 +54,19 @@ export class Story {
   genre: string[]
 
   // Add default cover image
-  @Column()
+  @Column({
+    name: 'cover_image'
+  })
   coverImage: string
 
-  @Column({ default: 0 })
+  @Column({ 
+    default: 0 
+  })
   views: number
 
-  @Column({ default: 0 })
+  @Column({ 
+    default: 0 
+  })
   downloads: number
 
   @Column({
@@ -61,6 +76,23 @@ export class Story {
   })
   plan: UserPlan
 
-  @Column({ default: false })
+  @Column({ 
+    default: false 
+  })
   featured: boolean
+
+  @Column({
+    default: 0
+  })
+  rating: number
+
+  @CreateDateColumn({
+    name: 'created_at'
+  })
+  createdAt: Date
+
+  @UpdateDateColumn({
+    name: 'updated_at'
+  })
+  updatedAt: Date
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -31,18 +32,30 @@ export class StoryController {
   constructor(private storyService: StoryService) {}
 
   @Get('featured')
-  getFeaturedStories() {
-    return this.storyService.find({ featured: true })
+  findFeaturedStories() {
+    return this.storyService.find({
+      where: {
+        featured: true
+      }
+    })
   }
 
   @Get('library')
-  getLibraryStories(@Query() dto: GetLibraryStoriesDto) {
-    return this.storyService.getLibraryStories(dto)
+  findLibraryStories(@Query() dto: GetLibraryStoriesDto) {
+    return this.storyService.findLibraryStories(dto)
   }
 
   @Get(':slug/id')
-  getStoryIdBySlug(@Param('slug') slug: string) {
-    return this.storyService.getStoryIdBySlug(slug)
+  async findStoryIdBySlug(@Param('slug') slug: string) {
+    const story = await this.storyService.findStoryIdBySlug(slug)
+
+    if (story === null) {
+      throw new NotFoundException({
+        message: 'Story not found'
+      })
+    }
+
+    return story
   }
 
   @Get(':slug')
@@ -58,6 +71,7 @@ export class StoryController {
   ) {
     const story = await this.storyService.create(dto, currentUser.id)
     return {
+      slug: story.slug,
       message: `Story '${story.name}' have been created successfully`
     }
   }
@@ -67,7 +81,9 @@ export class StoryController {
   async readStory(@Param('id') id: string) {
     const story = await this.storyService.findOneByOrFail({ id: Number(id) })
     await this.storyService.update(
-      { id: Number(id) },
+      { 
+        id: Number(id)
+      },
       {
         views: story.views + 1
       }
@@ -139,7 +155,9 @@ export class StoryController {
       })
     }
 
-    await this.storyService.delete({ id: Number(id) })
+    await this.storyService.delete({ 
+      id: Number(id) 
+    })
     return {
       message: 'Story have been deleted successfully'
     }

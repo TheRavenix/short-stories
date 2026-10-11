@@ -14,13 +14,13 @@ export class UserService {
     private hashService: HashService
   ) {}
 
-  findOneBy(where: FindOptionsWhere<User> = {}) {
+  findOneBy(where: FindOptionsWhere<User>) {
     return this.userRepository.findOneBy(where)
   }
 
   findOneWithPassword(
-    where: FindOptionsWhere<User> = {},
-    select: FindOptionsSelect<User> = {}
+    where?: FindOptionsWhere<User>,
+    select?: FindOptionsSelect<User>
   ) {
     return this.userRepository.findOne({
       where,
@@ -31,7 +31,7 @@ export class UserService {
     })
   }
 
-  async findOneByOrFail(where: FindOptionsWhere<User> = {}) {
+  async findOneByOrFail(where: FindOptionsWhere<User>) {
     const user = await this.userRepository.findOneBy(where)
 
     if (user === null) {
@@ -45,14 +45,14 @@ export class UserService {
 
   async create(dto: CreateUserDto) {
     const user = this.userRepository.create({
-      name: dto.name || this.generateUserName(dto.email),
+      name: dto.name || this.getUserNameFromEmail(dto.email),
       email: dto.email.toLowerCase(),
       password: await this.hashService.hash(dto.password)
     })
     return this.userRepository.save(user)
   }
 
-  update(where: FindOptionsWhere<User>, update: Partial<User> = {}) {
+  update(where: FindOptionsWhere<User>, update: Partial<User>) {
     return this.userRepository.update(where, update)
   }
 
@@ -60,7 +60,7 @@ export class UserService {
     return this.userRepository.delete(where)
   }
 
-  private generateUserName(email: string) {
+  private getUserNameFromEmail(email: string) {
     return capitalize(email.split('@')[0]) || 'Reader'
   }
 }
