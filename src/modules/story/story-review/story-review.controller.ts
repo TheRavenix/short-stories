@@ -22,6 +22,7 @@ import { StoryService } from '../story.service'
 import { StoryReviewDetails, StoryReviewsRating } from './story-review.types'
 import { StoryReview } from './story-review.entity'
 import { GetLibraryStoriesDto } from '../story.dto'
+import { UserAdminGuard } from 'src/common/guards/user-admin.guard'
 
 @Controller('story-reviews')
 export class StoryReviewController {
@@ -271,11 +272,11 @@ export class StoryReviewController {
     }
   }
 
-  @Delete(':storyId')
+  @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async deleteReviewByStoryId(
+  async deleteReviewById(
     @CurrentUser() currentUser: CurrentUserType,
-    @Param('storyId') id: string
+    @Param('id') id: string
   ) {
     const storyReview = await this.storyReviewService.findOneByOrFail({
       id: Number(id)
@@ -292,6 +293,17 @@ export class StoryReviewController {
     })
     return {
       message: 'Story review have been deleted successfully'
+    }
+  }
+
+  @Delete('story/:id')
+  @UseGuards(JwtAuthGuard, UserAdminGuard)
+  async deleteReviewsByStoryId(@Param('id') id: string) {
+    await this.storyReviewService.delete({
+      storyId: Number(id)
+    })
+    return {
+      message: 'Story reviews have been deleted successfully'
     }
   }
 }

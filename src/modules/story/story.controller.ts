@@ -67,7 +67,7 @@ export class StoryController {
   @UseGuards(JwtAuthGuard, UserAdminGuard)
   async createStory(
     @CurrentUser() currentUser: CurrentUserType,
-    @Body() dto: CreateStoryDto,
+    @Body() dto: CreateStoryDto
   ) {
     const story = await this.storyService.create(dto, currentUser.id)
     return {
@@ -129,8 +129,8 @@ export class StoryController {
       },
       {
         ...dto,
-        slug,
-      },
+        slug
+      }
     )
     return {
       message: 'Story have been edited successfully',
@@ -140,21 +140,7 @@ export class StoryController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, UserAdminGuard)
-  async deleteStory(
-    @CurrentUser() currentUser: CurrentUserType,
-    @Param('id') id: string,
-  ) {
-    const story = await this.storyService.findOneByOrFail({
-      id: Number(id),
-      userId: currentUser.id,
-    })
-
-    if (story.userId !== Number(id)) {
-      throw new UnauthorizedException({
-        message: 'You do not have permission to delete this story'
-      })
-    }
-
+  async deleteStory(@Param('id') id: string) {
     await this.storyService.delete({ 
       id: Number(id) 
     })

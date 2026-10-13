@@ -41,8 +41,14 @@ export class AuthController {
     }
 
     const createdUser = await this.userService.create(dto)
+    const authToken = await this.authService.signAuthToken(
+      createdUser.id.toString()
+    )
+    res.cookie('token', authToken, this.authService.getTokenCookieOptions())
     res.json({
-      message: `Welcome ${createdUser.name}`
+      message: `Welcome ${createdUser.name}`,
+      // This should be removed
+      token: authToken
     })
   }
 
