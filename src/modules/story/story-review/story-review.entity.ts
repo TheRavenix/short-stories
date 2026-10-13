@@ -21,7 +21,9 @@ export class StoryReview {
   })
   storyId: number
 
-  @Column()
+  @Column({
+    type: 'numeric'
+  })
   stars: number
 
   @Column()

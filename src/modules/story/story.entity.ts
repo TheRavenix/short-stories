@@ -29,25 +29,29 @@ export class Story {
   @Column()
   description: string
 
-  @Column('text', {
+  @Column({
+    type: 'text',
     array: true,
     default: []
   })
   content: string[]
 
-  @Column('text',{
+  @Column({
+    type: 'text',
     array: true,
     default: []
   })
   about: string[]
 
-  @Column('text', {
+  @Column({
+    type: 'text',
     array: true,
     default: []
   })
   preview: string[]
 
-  @Column('text', {
+  @Column({
+    type: 'text',
     array: true,
     default: []
   })
@@ -82,6 +86,7 @@ export class Story {
   featured: boolean
 
   @Column({
+    type: 'numeric',
     default: 0
   })
   rating: number

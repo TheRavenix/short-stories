@@ -119,6 +119,10 @@ export class EditStoryDto {
     message: 'Invalid plan'
   })
   plan?: UserPlan
+
+  @IsOptional()
+  @IsBoolean()
+  featured?: boolean
 }
 
 export class GetLibraryStoriesDto {
